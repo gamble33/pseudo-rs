@@ -1,4 +1,5 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
+use crate::parser::error::ParseResult;
 use crate::parser::expr::Expr;
 use crate::parser::Parser;
 
@@ -9,7 +10,7 @@ pub enum Stmt {
 impl<I> Parser<I>
 where I: Iterator<Item = Token>
 {
-    pub fn stmt(&mut self) -> Stmt {
+    pub fn stmt(&mut self) -> ParseResult<Stmt> {
         match self.tokens.peek() {
             Some(t) => match &t.kind {
                 TokenKind::Keyword(keyword) => match keyword {
@@ -23,12 +24,12 @@ where I: Iterator<Item = Token>
         self.expr_stmt()
     }
 
-    fn expr_stmt(&mut self) -> Stmt {
-        let expr_stmt = Stmt::Expr(self.expr());
-
+    fn expr_stmt(&mut self) -> ParseResult<Stmt> {
+        let expr_stmt = Stmt::Expr(self.expr()?);
+        todo!()
     }
 
-    fn output(&mut self) -> Stmt {
+    fn output(&mut self) -> ParseResult<Stmt> {
         unimplemented!()
     }
 }

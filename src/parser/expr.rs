@@ -1,6 +1,7 @@
 use crate::lexer::token::{TokenLiteralKind, Token, TokenKind, KeywordKind};
 use crate::match_tokens;
-use crate::parser::{Parser, ParseResult};
+use crate::parser::Parser;
+use crate::parser::error::{ParseResult, ParseError};
 
 #[derive(Debug)]
 pub enum Expr {
@@ -109,34 +110,46 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     }
 
     fn primary(&mut self) -> ParseResult<Expr> {
+        use TokenKind::*;
+
         Ok(match self.tokens.next() {
-            Some(t) => match t.kind {
-                TokenKind::Literal(literal) => match literal {
+            Some(t) => match t.clone().kind {
+                Literal(literal) => match literal {
                     TokenLiteralKind::Integer(i) => Expr::Literal(LiteralKind::Integer(i)),
                     TokenLiteralKind::Character(ch) => Expr::Literal(LiteralKind::Character(ch)),
                     TokenLiteralKind::String(string) => Expr::Literal(LiteralKind::String(string)),
                 },
-                TokenKind::Keyword(keyword) => match keyword {
+                Keyword(keyword) => match keyword {
                     KeywordKind::True => Expr::Literal(LiteralKind::Boolean(true)),
                     KeywordKind::False => Expr::Literal(LiteralKind::Boolean(false)),
-                    _ => todo!("expected literal, identifier or grouping (not keyword)")
+                    _ => return Err(ParseError::new(
+                        String::from("expected literal, identifier or grouping (not keyword)"),
+                        Some(t),
+                    ))
                 },
-                TokenKind::OpenParen => {
+                OpenParen => {
                     let expr = self.expr();
                     match self.tokens.next() {
                         Some(t) => match t.kind {
-                            TokenKind::CloseParen => {
+                            CloseParen => {
                                 return expr;
                             }
-                            _ => ()
+                            _ => todo!()
                         }
-                        _ => ()
+                        None => return Err(ParseError::new(String::from(
+                            "expected closing `)` after grouping expression"
+                        ), None))
                     }
-                    todo!("Expected closing `)` after grouping expression")
                 }
-                _ => todo!("expected literal, identifier or grouping")
+                _ => return Err(ParseError::new(
+                    String::from("expected literal, identifier or grouping"),
+                    Some(t),
+                ))
             }
-            None => todo!("expected expression")
+            None => return Err(ParseError::new(
+                String::from("expected literal, identifier or grouping"),
+                None,
+            ))
         })
     }
 }

@@ -1,15 +1,11 @@
+mod error;
 mod expr;
 mod stmt;
 
 use std::iter::Peekable;
 use crate::lexer::token::Token;
 
-type ParseResult<T> = Result<T, ParseError>;
 
-struct ParseError {
-    msg: String,
-    token: Token,
-}
 
 pub struct Parser<I>
     where I: Iterator<Item=Token>
@@ -25,7 +21,6 @@ impl<I> Parser<I>
             tokens,
         }
     }
-
 }
 
 // todo: fix macro so it allows TokenKind::Equal (instead of just Equal)
