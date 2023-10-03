@@ -1,5 +1,4 @@
 use crate::lexer::token::{TokenLiteralKind, Token, TokenKind, KeywordKind};
-use crate::match_tokens;
 use crate::parser::Parser;
 use crate::parser::error::ParseResult;
 
@@ -38,7 +37,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     fn assignment(&mut self) -> ParseResult<Expr> {
         let expr = self.equality()?;
 
-        if match_tokens!(self, LeftArrow) {
+        if self.match_tokens(&[TokenKind::LeftArrow]) {
             self.tokens.next();
             // Note: This allows chained assignment syntax `a <- b <- c`.
             // Might need to change this...
@@ -57,7 +56,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
         let mut expr = self.comparison()?;
 
 
-        while match_tokens!(self, Equal, NotEqual) {
+        while self.match_tokens(&[TokenKind::Equal, TokenKind::NotEqual]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.comparison()?;
             expr = Expr::Binary {
@@ -73,7 +72,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     fn comparison(&mut self) -> ParseResult<Expr> {
         let mut expr = self.term()?;
 
-        while match_tokens!(self, Greater, GreaterEqual, Less, LessEqual) {
+        while self.match_tokens(&[TokenKind::Greater, TokenKind::GreaterEqual, TokenKind::Less, TokenKind::LessEqual]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.term()?;
             expr = Expr::Binary {
@@ -89,7 +88,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     fn term(&mut self) -> ParseResult<Expr> {
         let mut expr = self.factor()?;
 
-        while match_tokens!(self, Plus, Minus) {
+        while self.match_tokens(&[TokenKind::Plus, TokenKind::Minus]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.factor()?;
             expr = Expr::Binary {
@@ -105,7 +104,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     fn factor(&mut self) -> ParseResult<Expr> {
         let mut expr = self.unary()?;
 
-        while match_tokens!(self, Star, Slash) {
+        while self.match_tokens(&[TokenKind::Star, TokenKind::Slash]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.unary()?;
             expr = Expr::Binary {
@@ -120,7 +119,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
 
     fn unary(&mut self) -> ParseResult<Expr> {
         // todo: exhaust list of unary operators
-        if match_tokens!(self, Minus) {
+        if self.match_tokens(&[TokenKind::Minus]) {
             return Ok(Expr::Unary {
                 op: self.tokens.next().unwrap(),
                 expr: Box::new(self.unary()?),

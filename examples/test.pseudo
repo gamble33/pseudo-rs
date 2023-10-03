@@ -1,4 +1,9 @@
 // hello there
 // how are you doing?
-a <- 5
-b <- 6
+IF a = 5 THEN
+    a <- a + 1
+ELSE
+    IF a = 6 THEN
+        a <- a - 1
+    ENDIF
+ENDIF
