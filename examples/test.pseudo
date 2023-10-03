@@ -1,9 +1,9 @@
 // hello there
 // how are you doing?
-IF a = 5 THEN
+IF a AND b THEN
     a <- a + 1
 ELSE
-    IF a = 6 THEN
+    IF a OR b THEN
         a <- a - 1
     ENDIF
 ENDIF

@@ -9,6 +9,11 @@ pub enum Expr {
         op: Token,
         rhs: Box<Expr>,
     },
+    Logical {
+        lhs: Box<Expr>,
+        op: Token,
+        rhs: Box<Expr>
+    },
     Unary {
         op: Token,
         expr: Box<Expr>,
@@ -35,7 +40,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     }
 
     fn assignment(&mut self) -> ParseResult<Expr> {
-        let expr = self.equality()?;
+        let expr = self.or()?;
 
         if self.match_tokens(&[TokenKind::LeftArrow]) {
             self.tokens.next();
@@ -45,6 +50,38 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
                 target: Box::new(expr),
                 value: Box::new(self.expr()?)
             })
+        }
+
+        Ok(expr)
+    }
+
+    fn or(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.and()?;
+
+        while self.match_tokens(&[TokenKind::Keyword(KeywordKind::Or)]) {
+            let op = self.tokens.next().unwrap();
+            let rhs = self.and()?;
+            expr = Expr::Logical {
+                lhs: Box::new(expr),
+                op,
+                rhs: Box::new(rhs)
+            }
+        }
+
+        Ok(expr)
+    }
+
+    fn and(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.equality()?;
+
+        while self.match_tokens(&[TokenKind::Keyword(KeywordKind::And)]) {
+            let op = self.tokens.next().unwrap();
+            let rhs = self.equality()?;
+            expr = Expr::Logical {
+                lhs: Box::new(expr),
+                op,
+                rhs: Box::new(rhs)
+            }
         }
 
         Ok(expr)
