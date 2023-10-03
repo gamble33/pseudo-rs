@@ -77,7 +77,7 @@ impl Iterator for Lexer<'_> {
                     self.src.next();
                 }
                 TokenKind::NewLine
-            },
+            }
 
             '"' => self.string(),
             '\'' => self.character(),
@@ -187,13 +187,12 @@ impl Lexer<'_> {
                 Some('A') => if check_keyword(chars.clone(), 2, "NDOM") { return TokenKind::Keyword(KeywordKind::Random); },
 
                 Some('E') => match chars.clone().nth(2) {
-
                     Some('T') => match chars.clone().nth(3) {
                         Some('U') => match chars.clone().nth(4) {
                             Some('R') => match chars.clone().nth(5) {
                                 Some('N') => match chars.clone().nth(6) {
-                                    Some('S') => if check_keyword(chars.clone(), 7, "") { return TokenKind::Keyword(KeywordKind::Returns)},
-                                    None => { return TokenKind::Keyword(KeywordKind::Return)},
+                                    Some('S') => if check_keyword(chars.clone(), 7, "") { return TokenKind::Keyword(KeywordKind::Returns); },
+                                    None => { return TokenKind::Keyword(KeywordKind::Return); }
                                     _ => ()
                                 },
                                 _ => ()
@@ -206,10 +205,10 @@ impl Lexer<'_> {
                     Some('P') => if check_keyword(chars.clone(), 3, "EAT") { return TokenKind::Keyword(KeywordKind::Repeat); },
 
                     Some('A') => match chars.clone().nth(3) {
-                        Some('L') => if check_keyword(chars.clone(), 2, "") { return TokenKind::Keyword(KeywordKind::Real)},
+                        Some('L') => if check_keyword(chars.clone(), 2, "") { return TokenKind::Keyword(KeywordKind::Real); },
                         Some('D') => match chars.clone().nth(4) {
-                            Some('F') => if check_keyword(chars.clone(), 5, "ILE") { return TokenKind::Keyword(KeywordKind::ReadFile)},
-                            None => if check_keyword(chars.clone(), 5, "") { return TokenKind::Keyword(KeywordKind::Read)},
+                            Some('F') => if check_keyword(chars.clone(), 5, "ILE") { return TokenKind::Keyword(KeywordKind::ReadFile); },
+                            None => if check_keyword(chars.clone(), 5, "") { return TokenKind::Keyword(KeywordKind::Read); },
                             _ => ()
                         },
                         _ => ()
@@ -218,23 +217,23 @@ impl Lexer<'_> {
                 },
                 _ => ()
             },
-            'S' => if check_keyword(chars.clone(), 1, "TRING") { return TokenKind::Keyword(KeywordKind::String)},
+            'S' => if check_keyword(chars.clone(), 1, "TRING") { return TokenKind::Keyword(KeywordKind::String); },
             'T' => match chars.clone().nth(1) {
-                Some('R') => if check_keyword(chars.clone(), 2, "UE") { return TokenKind::Keyword(KeywordKind::True)},
-                Some('O') => if check_keyword(chars.clone(), 2, "") { return TokenKind::Keyword(KeywordKind::To)},
-                Some('H') => if check_keyword(chars.clone(), 2, "EN") { return TokenKind::Keyword(KeywordKind::Then)},
-                Some('Y') => if check_keyword(chars.clone(), 2, "PE") { return TokenKind::Keyword(KeywordKind::Type)},
+                Some('R') => if check_keyword(chars.clone(), 2, "UE") { return TokenKind::Keyword(KeywordKind::True); },
+                Some('O') => if check_keyword(chars.clone(), 2, "") { return TokenKind::Keyword(KeywordKind::To); },
+                Some('H') => if check_keyword(chars.clone(), 2, "EN") { return TokenKind::Keyword(KeywordKind::Then); },
+                Some('Y') => if check_keyword(chars.clone(), 2, "PE") { return TokenKind::Keyword(KeywordKind::Type); },
                 _ => ()
             }
-            'U' => if check_keyword(chars.clone(), 1, "NTIL") { return TokenKind::Keyword(KeywordKind::Until)},
+            'U' => if check_keyword(chars.clone(), 1, "NTIL") { return TokenKind::Keyword(KeywordKind::Until); },
             'W' => match chars.clone().nth(1) {
-                Some('H') => if check_keyword(chars.clone(), 2, "ILE") { return TokenKind::Keyword(KeywordKind::While)},
+                Some('H') => if check_keyword(chars.clone(), 2, "ILE") { return TokenKind::Keyword(KeywordKind::While); },
                 Some('R') => match chars.clone().nth(2) {
                     Some('I') => match chars.clone().nth(3) {
                         Some('T') => match chars.clone().nth(4) {
                             Some('E') => match chars.clone().nth(5) {
-                                Some('F') => if check_keyword(chars.clone(), 6, "ILE") { return TokenKind::Keyword(KeywordKind::WriteFile)},
-                                None => if check_keyword(chars.clone(), 5, "") { return TokenKind::Keyword(KeywordKind::Write)}
+                                Some('F') => if check_keyword(chars.clone(), 6, "ILE") { return TokenKind::Keyword(KeywordKind::WriteFile); },
+                                None => if check_keyword(chars.clone(), 5, "") { return TokenKind::Keyword(KeywordKind::Write); }
                                 _ => ()
                             },
                             _ => ()
@@ -305,14 +304,19 @@ impl Lexer<'_> {
                     match self.src.peek() {
                         Some(&ch) if ch == '/' => {
                             self.src.next();
-                            while self.src.peek().is_some() {
-                                // todo: implement \r\n (CRLF line end)
-                                if !is_newline(ch) {
-                                    self.next();
-                                } else {
-                                    self.next();
-                                    break;
-                                }
+
+                            while match self.src.peek() {
+                                Some(&ch) if !is_newline(ch) => true,
+                                _ => false
+                            } {
+                                self.next();
+                            }
+
+                            while match self.src.peek() {
+                                Some(&ch) if is_newline(ch) => true,
+                                _ => false
+                            } {
+                                self.next();
                             }
                         }
                         _ => return Some('/')
