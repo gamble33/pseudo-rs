@@ -113,11 +113,11 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
         use TokenKind::*;
 
         Ok(match self.tokens.next() {
-            Some(t) => match t.clone().kind {
+            Some(t) => match &t.kind {
                 Literal(literal) => match literal {
-                    TokenLiteralKind::Integer(i) => Expr::Literal(LiteralKind::Integer(i)),
-                    TokenLiteralKind::Character(ch) => Expr::Literal(LiteralKind::Character(ch)),
-                    TokenLiteralKind::String(string) => Expr::Literal(LiteralKind::String(string)),
+                    TokenLiteralKind::Integer(i) => Expr::Literal(LiteralKind::Integer(*i)),
+                    TokenLiteralKind::Character(ch) => Expr::Literal(LiteralKind::Character(*ch)),
+                    TokenLiteralKind::String(string) => Expr::Literal(LiteralKind::String(string.to_owned())),
                 },
                 Keyword(keyword) => match keyword {
                     KeywordKind::True => Expr::Literal(LiteralKind::Boolean(true)),
