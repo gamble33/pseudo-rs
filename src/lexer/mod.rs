@@ -70,7 +70,10 @@ impl Iterator for Lexer<'_> {
             }
 
             ch if is_newline(ch) => {
-                while self.src.peek().is_some_and(|&ch| is_newline(ch)) {
+                while match self.src.peek() {
+                    Some(&c) if is_newline(c) => true,
+                    _ => false
+                } {
                     self.src.next();
                 }
                 TokenKind::NewLine
@@ -267,7 +270,10 @@ impl Lexer<'_> {
     fn string(&mut self) -> TokenKind {
         let mut value = String::new();
         self.consume_while(|ch| ch != '"' && !is_newline(ch), &mut value);
-        if self.src.peek().is_none() || self.src.peek().is_some_and(|&ch| ch != '"') {
+        if self.src.peek().is_none() || match self.src.peek() {
+            Some(&c) if c != '"' => true,
+            _ => false,
+        } {
             todo!("unterminated string");
         }
         self.src.next();

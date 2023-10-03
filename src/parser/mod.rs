@@ -4,8 +4,7 @@ mod stmt;
 
 use std::iter::Peekable;
 use crate::lexer::token::{Token, TokenKind};
-use crate::parser::error::ParseResult;
-
+use crate::parser::error::{ParseResult, ParseError};
 
 pub struct Parser<I>
     where I: Iterator<Item=Token>
@@ -22,11 +21,17 @@ impl<I> Parser<I>
         }
     }
 
-    // fn consume<T>(&mut self, token: TokenKind, msg: String) -> ParseResult<T> {
-    //     match self.tokens.next() {
-    //         Some(t)
-    //     }
-    // }
+    fn consume(&mut self, kind: TokenKind, msg: String) -> ParseResult<()> {
+        match self.tokens.next() {
+            Some(t) => {
+                if t.kind != kind {
+                    return Err(ParseError::new(msg, Some(t)))
+                }
+                return Ok(())
+            }
+            None => Err(ParseError::new(msg, None))
+        }
+    }
 }
 
 // todo: fix macro so it allows TokenKind::Equal (instead of just Equal)
