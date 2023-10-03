@@ -39,6 +39,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
         let expr = self.equality()?;
 
         if match_tokens!(self, LeftArrow) {
+            self.tokens.next();
             // Note: This allows chained assignment syntax `a <- b <- c`.
             // Might need to change this...
             return Ok(Expr::Assignment {
