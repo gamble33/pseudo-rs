@@ -14,7 +14,12 @@ pub enum Expr {
         op: Token,
         expr: Box<Expr>,
     },
+    Assignment {
+        target: Box<Expr>,
+        value: Box<Expr>
+    },
     Literal(LiteralKind),
+    Variable(String),
 }
 
 #[derive(Debug)]
@@ -27,7 +32,22 @@ pub enum LiteralKind {
 
 impl<I> Parser<I> where I: Iterator<Item=Token> {
     pub fn expr(&mut self) -> ParseResult<Expr> {
-        self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> ParseResult<Expr> {
+        let expr = self.equality()?;
+
+        if match_tokens!(self, LeftArrow) {
+            // Note: This allows chained assignment syntax `a <- b <- c`.
+            // Might need to change this...
+            return Ok(Expr::Assignment {
+                target: Box::new(expr),
+                value: Box::new(self.expr()?)
+            })
+        }
+
+        Ok(expr)
     }
 
     // todo: right a macro for left-associative binary operations.
@@ -127,6 +147,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
                         Some(t),
                     )
                 },
+                Identifier(name) => Expr::Variable(name.to_owned()),
                 OpenParen => {
                     let expr = self.expr()?;
                     self.consume(
