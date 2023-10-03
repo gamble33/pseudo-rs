@@ -1,9 +1,5 @@
-// hello there
-// how are you doing?
-IF a AND b THEN
-    a <- a + 1
-ELSE
-    IF a OR b THEN
-        a <- a - 1
-    ENDIF
-ENDIF
+WHILE TRUE
+    REPEAT
+        OUTPUT "Hello"
+    UNTIL FALSE
+ENDWHILE

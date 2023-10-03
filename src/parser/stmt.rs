@@ -10,6 +10,16 @@ pub enum Stmt {
         then_branch: Box<Stmt>,
         else_branch: Option<Box<Stmt>>,
     },
+    Repeat {
+        body: Box<Stmt>,
+        until: Expr
+    },
+
+    While {
+        body: Box<Stmt>,
+        condition: Expr,
+    },
+
     Expr(Expr),
     Output(Expr),
     Block(Vec<Stmt>),
@@ -51,6 +61,8 @@ impl<I> Parser<I>
                 TokenKind::Keyword(keyword) => match keyword {
                     KeywordKind::Output => return self.output(),
                     KeywordKind::If => return self.if_stmt(),
+                    KeywordKind::Repeat => return self.repeat(),
+                    KeywordKind::While => return self.while_stmt(),
                     _ => ()
                 },
                 _ => ()
@@ -136,5 +148,58 @@ impl<I> Parser<I>
             then_branch,
             else_branch
         })
+    }
+
+    fn repeat(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+        
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after keyword, `REPEAT`."),
+        )?;
+
+        let body = Box::new(self.block(&[
+            TokenKind::Keyword(KeywordKind::Until)
+        ])?);
+
+        self.consume(
+            TokenKind::Keyword(KeywordKind::Until),
+            String::from("expected keyword, `UNTIL`, after post-condition loop body."),
+        )?;
+
+        let condition = self.expr()?;
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after REPEAT loop condition."),
+        )?;
+        
+        Ok(Stmt::Repeat { body, until: condition })
+    }
+
+    fn while_stmt(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+        let condition = self.expr()?;
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after WHILE loop condition."),
+        )?;
+
+        let body = Box::new(self.block(&[
+            TokenKind::Keyword(KeywordKind::EndWhile)
+        ])?);
+
+        self.consume(
+            TokenKind::Keyword(KeywordKind::EndWhile),
+            String::from("expected keyword, `ENDWHILE`, after pre-condition loop body."),
+        )?;
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after keyword, `ENDWHILE`."),
+        )?;
+        
+        Ok(Stmt::While { body, condition })
     }
 }
