@@ -305,19 +305,8 @@ impl Lexer<'_> {
                         Some(&ch) if ch == '/' => {
                             self.src.next();
 
-                            while match self.src.peek() {
-                                Some(&ch) if !is_newline(ch) => true,
-                                _ => false
-                            } {
-                                self.next();
-                            }
-
-                            while match self.src.peek() {
-                                Some(&ch) if is_newline(ch) => true,
-                                _ => false
-                            } {
-                                self.next();
-                            }
+                            self.advance_while(|ch| !is_newline(ch));
+                            self.advance_while(is_newline);
                         }
                         _ => return Some('/')
                     }
@@ -327,6 +316,17 @@ impl Lexer<'_> {
             }
         }
         None
+    }
+
+    fn advance_while<C>(&mut self, condition: C)
+        where C: Fn(char) -> bool
+    {
+        while match self.src.peek() {
+            Some(&ch) if condition(ch) => true,
+            _ => false,
+        } {
+            self.src.next();
+        }
     }
 
     fn consume_while<C>(&mut self, condition: C, buffer: &mut String)
