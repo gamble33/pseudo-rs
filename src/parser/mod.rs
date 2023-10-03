@@ -10,6 +10,7 @@ pub struct Parser<I>
     where I: Iterator<Item=Token>
 {
     tokens: Peekable<I>,
+    had_error: bool,
 }
 
 impl<I> Parser<I>
@@ -18,6 +19,7 @@ impl<I> Parser<I>
     pub fn new(tokens: Peekable<I>) -> Self {
         Self {
             tokens,
+            had_error: false,
         }
     }
 
@@ -25,11 +27,11 @@ impl<I> Parser<I>
         match self.tokens.next() {
             Some(t) => {
                 if t.kind != kind {
-                    return Err(ParseError::new(msg, Some(t)))
+                    return self.error(msg, Some(t))
                 }
                 return Ok(())
             }
-            None => Err(ParseError::new(msg, None))
+            None => self.error(msg, None)
         }
     }
 }

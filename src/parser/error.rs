@@ -1,4 +1,5 @@
 use crate::lexer::token::Token;
+use crate::parser::Parser;
 
 pub type ParseResult<T> = Result<T, ParseError>;
 
@@ -14,5 +15,15 @@ impl ParseError {
             msg,
             token
         }
+    }
+}
+
+impl<I> Parser<I>
+where I: Iterator<Item = Token>
+{
+    #[inline]
+    pub fn error<T>(&mut self, msg: String, token: Option<Token>) -> ParseResult<T> {
+        self.had_error = true;
+        Err(ParseError::new(msg, token))
     }
 }

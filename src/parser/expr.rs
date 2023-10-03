@@ -1,7 +1,7 @@
 use crate::lexer::token::{TokenLiteralKind, Token, TokenKind, KeywordKind};
 use crate::match_tokens;
 use crate::parser::Parser;
-use crate::parser::error::{ParseResult, ParseError};
+use crate::parser::error::ParseResult;
 
 #[derive(Debug)]
 pub enum Expr {
@@ -122,34 +122,28 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
                 Keyword(keyword) => match keyword {
                     KeywordKind::True => Expr::Literal(LiteralKind::Boolean(true)),
                     KeywordKind::False => Expr::Literal(LiteralKind::Boolean(false)),
-                    _ => return Err(ParseError::new(
+                    _ => return self.error(
                         String::from("expected literal, identifier or grouping (not keyword)"),
                         Some(t),
-                    ))
+                    )
                 },
                 OpenParen => {
-                    let expr = self.expr();
-                    match self.tokens.next() {
-                        Some(t) => match t.kind {
-                            CloseParen => {
-                                return expr;
-                            }
-                            _ => todo!()
-                        }
-                        None => return Err(ParseError::new(String::from(
-                            "expected closing `)` after grouping expression"
-                        ), None))
-                    }
+                    let expr = self.expr()?;
+                    self.consume(
+                        CloseParen,
+                        String::from("expected closing `)` after grouping expression")
+                    )?;
+                    expr
                 }
-                _ => return Err(ParseError::new(
+                _ => return self.error(
                     String::from("expected literal, identifier or grouping"),
                     Some(t),
-                ))
+                )
             }
-            None => return Err(ParseError::new(
+            None => return self.error(
                 String::from("expected literal, identifier or grouping"),
                 None,
-            ))
+            )
         })
     }
 }
