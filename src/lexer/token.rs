@@ -1,9 +1,17 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub kind: TokenKind,
 }
 
-#[derive(Debug, PartialEq)]
+impl Token {
+    pub fn new(kind: TokenKind) -> Self {
+        Self {
+            kind,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
     Identifier(String),
     Literal(TokenLiteralKind),
@@ -36,14 +44,14 @@ pub enum TokenKind {
     Equal,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenLiteralKind {
     Integer(i32),
     Character(char),
     String(String),
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum KeywordKind {
     And,
     Or,

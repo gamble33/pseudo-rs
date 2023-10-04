@@ -2,7 +2,7 @@ use crate::lexer::token::{TokenLiteralKind, Token, TokenKind, KeywordKind};
 use crate::parser::Parser;
 use crate::parser::error::ParseResult;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Binary {
         lhs: Box<Expr>,
@@ -26,7 +26,7 @@ pub enum Expr {
     Variable(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LiteralKind {
     Integer(i32),
     Character(char),

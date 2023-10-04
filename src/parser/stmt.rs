@@ -1,6 +1,6 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::ParseResult;
-use crate::parser::expr::Expr;
+use crate::parser::expr::{Expr, LiteralKind};
 use crate::parser::Parser;
 
 #[derive(Debug)]
@@ -239,30 +239,54 @@ impl<I> Parser<I>
             String::from("expected new line after `FOR` loop header."),
         )?;
 
-        let body = Box::new(self.block(&[
+        let body = self.block(&[
             TokenKind::Keyword(KeywordKind::Next)
-        ])?);
+        ])?;
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Next),
             String::from("expected keyword, `NEXT`, after count-controlled loop body."),
         )?;
 
-        // todo: ensure this is a variable expression
         let counter = self.expr()?;
+
+        match counter {
+            Expr::Variable(_) => (),
+            _ => self.error(
+                String::from("FOR loop must specify variable to increment."),
+                None // todo: figure out how to insert token here.
+            )?,
+        }
 
         self.consume(
             TokenKind::NewLine,
             String::from("expected new line after identifier."),
         )?;
 
-        Ok(Stmt::For {
-            initializer,
-            to,
-            step,
-            body,
-            counter
-        })
-
+        // de-sugaring FOR loops into WHILE loops
+        Ok(Stmt::Block(vec![
+            Stmt::Expr(initializer),
+            Stmt::While {
+                body: Box::new(Stmt::Block(vec![
+                    body,
+                    Stmt::Expr(Expr::Assignment {
+                        target: Box::new(counter.clone()),
+                        value: Box::new(Expr::Binary {
+                            lhs: Box::new(counter.clone()),
+                            op: Token::new(TokenKind::Plus),
+                            rhs: Box::new(match step {
+                                Some(s) => s,
+                                None => Expr::Literal(LiteralKind::Integer(1))
+                            })
+                        }),
+                    })
+                ])),
+                condition: Expr::Binary {
+                  lhs: Box::new(counter),
+                  op: Token::new(TokenKind::NotEqual),
+                  rhs: Box::new(to)
+                }
+            }
+        ]))
     }
 }
