@@ -23,6 +23,7 @@ pub enum Stmt {
 
     Expr(Expr),
     Output(Expr),
+    Input(Expr),
     Block(Vec<Stmt>),
 }
 
@@ -61,6 +62,7 @@ impl<I> Parser<I>
             Some(t) => match &t.kind {
                 TokenKind::Keyword(keyword) => match keyword {
                     KeywordKind::Output => return self.output(),
+                    KeywordKind::Input => return self.input(),
                     KeywordKind::If => return self.if_stmt(),
                     KeywordKind::Repeat => return self.repeat(),
                     KeywordKind::While => return self.while_stmt(),
@@ -94,6 +96,16 @@ impl<I> Parser<I>
             String::from("expected new line after expression."),
         )?;
         Ok(Stmt::Output(expr))
+    }
+
+    fn input(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+        let holder = self.expr()?;
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after expression."),
+        )?;
+        Ok(Stmt::Input(holder))
     }
 
     fn if_stmt(&mut self) -> ParseResult<Stmt> {
