@@ -21,15 +21,6 @@ pub enum Stmt {
         condition: Expr,
     },
 
-    For {
-        initializer: Expr,
-        to: Expr,
-        step: Option<Expr>,
-        body: Box<Stmt>,
-        counter: Expr,
-
-    },
-
     Expr(Expr),
     Output(Expr),
     Block(Vec<Stmt>),
