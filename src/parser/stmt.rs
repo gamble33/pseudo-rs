@@ -10,6 +10,7 @@ pub enum Stmt {
         then_branch: Box<Stmt>,
         else_branch: Option<Box<Stmt>>,
     },
+
     Repeat {
         body: Box<Stmt>,
         until: Expr
@@ -18,6 +19,15 @@ pub enum Stmt {
     While {
         body: Box<Stmt>,
         condition: Expr,
+    },
+
+    For {
+        initializer: Expr,
+        to: Expr,
+        step: Option<Expr>,
+        body: Box<Stmt>,
+        counter: Expr,
+
     },
 
     Expr(Expr),
@@ -63,6 +73,7 @@ impl<I> Parser<I>
                     KeywordKind::If => return self.if_stmt(),
                     KeywordKind::Repeat => return self.repeat(),
                     KeywordKind::While => return self.while_stmt(),
+                    KeywordKind::For => return self.for_stmt(),
                     _ => ()
                 },
                 _ => ()
@@ -201,5 +212,57 @@ impl<I> Parser<I>
         )?;
         
         Ok(Stmt::While { body, condition })
+    }
+
+    fn for_stmt(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+        let initializer = self.expr()?;
+
+        self.consume(
+            TokenKind::Keyword(KeywordKind::To),
+            String::from("expected keyword, `TO`, after initializer expression."),
+        )?;
+
+        // todo: ensure to expr is an assignment
+        let to = self.expr()?;
+
+        let step = match self.match_tokens(&[TokenKind::Keyword(KeywordKind::Step)]) {
+            true => {
+                self.tokens.next();
+                Some(self.expr()?)
+            },
+            false => None
+        };
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after `FOR` loop header."),
+        )?;
+
+        let body = Box::new(self.block(&[
+            TokenKind::Keyword(KeywordKind::Next)
+        ])?);
+
+        self.consume(
+            TokenKind::Keyword(KeywordKind::Next),
+            String::from("expected keyword, `NEXT`, after count-controlled loop body."),
+        )?;
+
+        // todo: ensure this is a variable expression
+        let counter = self.expr()?;
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after identifier."),
+        )?;
+
+        Ok(Stmt::For {
+            initializer,
+            to,
+            step,
+            body,
+            counter
+        })
+
     }
 }

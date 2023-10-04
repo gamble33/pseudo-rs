@@ -83,6 +83,7 @@ pub enum KeywordKind {
 
     For,
     To,
+    Step,
     Next,
 
     While,

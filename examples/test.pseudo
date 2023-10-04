@@ -1,5 +1,5 @@
-WHILE TRUE
-    REPEAT
-        OUTPUT "Hello"
-    UNTIL FALSE
-ENDWHILE
+FOR i <- 0 TO 100
+    FOR j <- 100 TO 0 STEP -1
+        OUTPUT j
+    NEXT j
+NEXT i

@@ -217,7 +217,14 @@ impl Lexer<'_> {
                 },
                 _ => ()
             },
-            'S' => if check_keyword(chars.clone(), 1, "TRING") { return TokenKind::Keyword(KeywordKind::String); },
+            'S' => match chars.clone().nth(1) {
+                Some('T') => match chars.clone().nth(2) {
+                    Some('R') if check_keyword(chars.clone(), 3, "ING") => { return TokenKind::Keyword(KeywordKind::String); }
+                    Some('E') if check_keyword(chars.clone(), 3, "P") => { return TokenKind::Keyword(KeywordKind::Step); }
+                    _ => ()
+                },
+                _ => ()
+            },
             'T' => match chars.clone().nth(1) {
                 Some('R') => if check_keyword(chars.clone(), 2, "UE") { return TokenKind::Keyword(KeywordKind::True); },
                 Some('O') => if check_keyword(chars.clone(), 2, "") { return TokenKind::Keyword(KeywordKind::To); },
