@@ -1,26 +1,55 @@
 mod error;
 mod expr;
 mod stmt;
-#[allow(dead_code)] mod type_name;
+#[allow(dead_code)]
+mod type_name;
 
 use std::iter::Peekable;
-use crate::lexer::token::{Token, TokenKind};
-use crate::parser::error::ParseResult;
+use crate::lexer::token::{KeywordKind, Token, TokenKind};
+use crate::parser::error::{ParseError, ParseResult};
+use crate::parser::stmt::Stmt;
 
 pub struct Parser<I>
     where I: Iterator<Item=Token>
 {
     tokens: Peekable<I>,
-    had_error: bool,
 }
 
 impl<I> Parser<I>
     where I: Iterator<Item=Token>
 {
     pub fn new(tokens: Peekable<I>) -> Self {
-        Self {
-            tokens,
-            had_error: false,
+        Self { tokens }
+    }
+
+    pub fn program(&mut self) -> Result<Vec<Stmt>, Vec<ParseError>> {
+        let mut declarations = Vec::new();
+        let mut errors = Vec::new();
+        let mut had_error = false;
+
+        while self.tokens.peek().is_some() {
+            match self.decl() {
+                Ok(decl) => declarations.push(decl),
+                Err(error) => {
+                    had_error = true;
+                    errors.push(error);
+                    self.synchronize();
+                }
+            }
+        }
+
+        match had_error {
+            true => Err(errors),
+            false => Ok(declarations)
+        }
+    }
+
+    fn synchronize(&mut self) {
+        while !self.match_tokens(&[
+            TokenKind::Keyword(KeywordKind::Procedure),
+            TokenKind::Keyword(KeywordKind::Function),
+        ]) && self.tokens.peek().is_some() {
+            self.tokens.next();
         }
     }
 
@@ -28,9 +57,9 @@ impl<I> Parser<I>
         match self.tokens.next() {
             Some(token) => {
                 if token.kind != kind {
-                    return self.error(msg, Some(token))
+                    return self.error(msg, Some(token));
                 }
-                return Ok(token)
+                return Ok(token);
             }
             None => self.error(msg, None)
         }
@@ -50,4 +79,5 @@ impl<I> Parser<I>
             None => false
         }
     }
+
 }

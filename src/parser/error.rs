@@ -5,8 +5,8 @@ pub type ParseResult<T> = Result<T, ParseError>;
 
 #[derive(Debug)]
 pub struct ParseError {
-    msg: String,
-    token: Option<Token>,
+    pub msg: String,
+    pub token: Option<Token>,
 }
 
 impl ParseError {
@@ -23,7 +23,6 @@ where I: Iterator<Item = Token>
 {
     #[inline]
     pub fn error<T>(&mut self, msg: String, token: Option<Token>) -> ParseResult<T> {
-        self.had_error = true;
         Err(ParseError::new(msg, token))
     }
 }
