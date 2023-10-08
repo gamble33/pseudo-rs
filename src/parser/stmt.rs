@@ -30,24 +30,32 @@ pub enum Stmt {
 impl<I> Parser<I>
     where I: Iterator<Item=Token>
 {
-    pub fn declaration(&mut self) -> ParseResult<Stmt> {
-        match self.tokens.peek() {
-            Some(t) => match &t.kind {
+    pub fn decl(&mut self) -> ParseResult<Stmt> {
+        match self.tokens.next() {
+            Some(token) => match token.clone().kind {
                 TokenKind::Keyword(keyword) => match keyword {
-                    KeywordKind::Declare => return self.var_declaration(),
-                    _ => ()
+                    KeywordKind::Procedure => todo!(),
+                    _ => self.error(
+                        String::from("expected declaration."),
+                        Some(token)
+                    )
                 },
-                _ => ()
+                _ => self.error(
+                    String::from("expected declaration."),
+                    Some(token)
+                )
             }
-            None => ()
+            None => self.error(
+                String::from("expected declaration."),
+                None,
+            )
         }
-        self.stmt()
     }
 
     fn block(&mut self, block_terminators: &[TokenKind]) -> ParseResult<Stmt> {
         let mut stmts = Vec::new();
         while !self.match_tokens(block_terminators) {
-            stmts.push(self.declaration()?);
+            stmts.push(self.stmt()?);
         }
         Ok(Stmt::Block(stmts))
     }
@@ -67,6 +75,7 @@ impl<I> Parser<I>
                     KeywordKind::Repeat => return self.repeat(),
                     KeywordKind::While => return self.while_stmt(),
                     KeywordKind::For => return self.for_stmt(),
+                    KeywordKind::Declare => return self.var_declaration(),
                     _ => ()
                 },
                 _ => ()
