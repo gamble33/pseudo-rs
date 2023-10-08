@@ -28,6 +28,11 @@ pub enum Stmt {
         body: Box<Stmt>,
     },
 
+    Call {
+        name: String,
+        args: Vec<Expr>
+    },
+
     VarDecl {
         name: String,
         type_name: TypeName,
@@ -49,7 +54,7 @@ pub struct Param {
 #[derive(Debug)]
 pub enum PassingMode {
     ByVal,
-    ByRef
+    ByRef,
 }
 
 impl<I> Parser<I>
@@ -82,7 +87,7 @@ impl<I> Parser<I>
                 TokenKind::NewLine => Ok(decl),
                 _ => self.error(
                     String::from("expected new line after declaration."),
-                    Some(token)
+                    Some(token),
                 )
             },
             None => Ok(decl)
@@ -109,8 +114,8 @@ impl<I> Parser<I>
                     KeywordKind::While => self.while_stmt(),
                     KeywordKind::For => self.for_stmt(),
                     KeywordKind::Declare => self.var_decl(),
+                    KeywordKind::Call => self.call(),
                     _ => self.expr_stmt()
-
                 },
                 _ => self.expr_stmt()
             }
@@ -128,11 +133,11 @@ impl<I> Parser<I>
                     KeywordKind::ByRef => {
                         self.tokens.next();
                         Some(PassingMode::ByRef)
-                    },
+                    }
                     KeywordKind::ByVal => {
                         self.tokens.next();
                         Some(PassingMode::ByVal)
-                    },
+                    }
                     _ => None,
                 }
                 _ => None,
@@ -156,7 +161,7 @@ impl<I> Parser<I>
 
         self.consume(
             TokenKind::Colon,
-            String::from("expected `:` after parameter name.")
+            String::from("expected `:` after parameter name."),
         )?;
 
         let type_name = self.type_name()?;
@@ -164,7 +169,7 @@ impl<I> Parser<I>
         Ok(Param {
             passing_mode,
             name,
-            type_name
+            type_name,
         })
     }
 
@@ -198,7 +203,7 @@ impl<I> Parser<I>
 
             self.consume(
                 TokenKind::CloseParen,
-                String::from("expected `)` after parameters.")
+                String::from("expected `)` after parameters."),
             )?;
         }
 
@@ -216,12 +221,59 @@ impl<I> Parser<I>
         Ok(Stmt::Procedure {
             name,
             params,
-            body
+            body,
         })
     }
 
     fn function(&mut self) -> ParseResult<Stmt> {
         todo!()
+    }
+
+    fn call(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+
+        let name = match self.tokens.next() {
+            Some(token) => match token.kind {
+                TokenKind::Identifier(name) => name,
+                _ => return self.error(
+                    String::from("expected identifier for PROCEDURE name after keyword, `CALL`."),
+                    Some(token),
+                )
+            }
+            None => return self.error(
+                String::from("expected identifier for PROCEDURE name after keyword, `CALL`."),
+                None,
+            )
+        };
+
+        let mut args = Vec::new();
+        if self.match_tokens(&[TokenKind::OpenParen]) {
+            self.tokens.next();
+
+            loop {
+                args.push(self.expr()?);
+
+                if !self.match_tokens(&[TokenKind::Comma]) {
+                    break;
+                }
+                self.tokens.next();
+            }
+
+            self.consume(
+                TokenKind::CloseParen,
+                String::from("expected `)` after arguments."),
+            )?;
+        }
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after procedure call."),
+        )?;
+
+        Ok(Stmt::Call {
+            name,
+            args
+        })
     }
 
     fn var_decl(&mut self) -> ParseResult<Stmt> {
@@ -243,21 +295,20 @@ impl<I> Parser<I>
 
         self.consume(
             TokenKind::Colon,
-            String::from("expected `:` after variable name.")
+            String::from("expected `:` after variable name."),
         )?;
 
         let type_name = self.type_name()?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after variable declaration.")
+            String::from("expected new line after variable declaration."),
         )?;
 
         Ok(Stmt::VarDecl {
             name,
-            type_name
+            type_name,
         })
-
     }
 
     fn expr_stmt(&mut self) -> ParseResult<Stmt> {
