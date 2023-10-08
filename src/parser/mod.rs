@@ -1,6 +1,7 @@
 mod error;
 mod expr;
 mod stmt;
+mod type_name;
 
 use std::iter::Peekable;
 use crate::lexer::token::{Token, TokenKind};

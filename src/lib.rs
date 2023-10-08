@@ -8,5 +8,5 @@ use crate::parser::Parser;
 pub fn interpret(src: &str) {
     let tokens = Lexer::new(src);
     let mut parser = Parser::new(tokens.peekable());
-    println!("{:?}", parser.declaration());
+    println!("{:?}", parser.type_name());
 }
