@@ -2,6 +2,7 @@ use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::ParseResult;
 use crate::parser::expr::{Expr, LiteralKind};
 use crate::parser::Parser;
+use crate::parser::type_name::TypeName;
 
 #[derive(Debug)]
 pub enum Stmt {
@@ -13,12 +14,18 @@ pub enum Stmt {
 
     Repeat {
         body: Box<Stmt>,
-        until: Expr
+        until: Expr,
     },
 
     While {
         body: Box<Stmt>,
         condition: Expr,
+    },
+
+    Procedure {
+        name: String,
+        params: Vec<Param>,
+        body: Box<Stmt>,
     },
 
     Expr(Expr),
@@ -27,22 +34,35 @@ pub enum Stmt {
     Block(Vec<Stmt>),
 }
 
+#[derive(Debug)]
+pub struct Param {
+    name: String,
+    type_name: TypeName,
+    passing_mode: Option<PassingMode>,
+}
+
+#[derive(Debug)]
+pub enum PassingMode {
+    ByVal,
+    ByRef
+}
+
 impl<I> Parser<I>
     where I: Iterator<Item=Token>
 {
     pub fn decl(&mut self) -> ParseResult<Stmt> {
         match self.tokens.next() {
-            Some(token) => match token.clone().kind {
+            Some(token) => match &token.kind {
                 TokenKind::Keyword(keyword) => match keyword {
-                    KeywordKind::Procedure => todo!(),
+                    KeywordKind::Procedure => self.procedure(),
                     _ => self.error(
                         String::from("expected declaration."),
-                        Some(token)
+                        Some(token),
                     )
                 },
                 _ => self.error(
                     String::from("expected declaration."),
-                    Some(token)
+                    Some(token),
                 )
             }
             None => self.error(
@@ -60,32 +80,131 @@ impl<I> Parser<I>
         Ok(Stmt::Block(stmts))
     }
 
-    fn var_declaration(&mut self) -> ParseResult<Stmt> {
-        self.tokens.next();
-        todo!()
-    }
 
     fn stmt(&mut self) -> ParseResult<Stmt> {
         match self.tokens.peek() {
             Some(t) => match &t.kind {
                 TokenKind::Keyword(keyword) => match keyword {
-                    KeywordKind::Output => return self.output(),
-                    KeywordKind::Input => return self.input(),
-                    KeywordKind::If => return self.if_stmt(),
-                    KeywordKind::Repeat => return self.repeat(),
-                    KeywordKind::While => return self.while_stmt(),
-                    KeywordKind::For => return self.for_stmt(),
-                    KeywordKind::Declare => return self.var_declaration(),
-                    _ => ()
+                    KeywordKind::Output => self.output(),
+                    KeywordKind::Input => self.input(),
+                    KeywordKind::If => self.if_stmt(),
+                    KeywordKind::Repeat => self.repeat(),
+                    KeywordKind::While => self.while_stmt(),
+                    KeywordKind::For => self.for_stmt(),
+                    KeywordKind::Declare => self.var_decl(),
+                    _ => self.expr_stmt()
+
                 },
-                _ => ()
+                _ => self.expr_stmt()
             }
             None => return self.error(
                 String::from("expected statement"),
                 None,
             )
         }
-        self.expr_stmt()
+    }
+
+    fn param(&mut self) -> ParseResult<Param> {
+        let passing_mode = match self.tokens.peek() {
+            Some(token) => match &token.kind {
+                TokenKind::Keyword(keyword) => match keyword {
+                    KeywordKind::ByRef => {
+                        self.tokens.next();
+                        Some(PassingMode::ByRef)
+                    },
+                    KeywordKind::ByVal => {
+                        self.tokens.next();
+                        Some(PassingMode::ByVal)
+                    },
+                    _ => None,
+                }
+                _ => None,
+            },
+            None => None,
+        };
+
+        let name = match self.tokens.next() {
+            Some(token) => match token.kind {
+                TokenKind::Identifier(name) => name,
+                _ => return self.error(
+                    String::from("expected identifier for parameter name."),
+                    Some(token),
+                )
+            }
+            None => return self.error(
+                String::from("expected identifier for parameter name."),
+                None,
+            )
+        };
+
+        self.consume(
+            TokenKind::Colon,
+            String::from("expected `:` after parameter name.")
+        )?;
+
+        let type_name = self.type_name()?;
+
+        Ok(Param {
+            passing_mode,
+            name,
+            type_name
+        })
+    }
+
+    fn procedure(&mut self) -> ParseResult<Stmt> {
+        let name = match self.tokens.next() {
+            Some(token) => match token.kind {
+                TokenKind::Identifier(name) => name,
+                _ => return self.error(
+                    String::from("expected identifier for PROCEDURE name."),
+                    Some(token),
+                )
+            }
+            None => return self.error(
+                String::from("expected identifier for PROCEDURE name."),
+                None,
+            )
+        };
+        let mut params = Vec::new();
+        if self.match_tokens(&[TokenKind::OpenParen]) {
+            self.tokens.next();
+
+            loop {
+                params.push(self.param()?);
+
+                if !self.match_tokens(&[TokenKind::Comma]) {
+                    break;
+                }
+                self.tokens.next();
+            }
+
+            self.consume(
+                TokenKind::CloseParen,
+                String::from("expected `)` after parameters.")
+            )?;
+        }
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after PROCEDURE header."),
+        )?;
+
+        let body = Box::new(self.block(&[
+            TokenKind::Keyword(KeywordKind::EndProcedure),
+        ])?);
+
+        self.tokens.next();
+
+        Ok(Stmt::Procedure {
+            name,
+            params,
+            body
+        })
+    }
+
+    fn var_decl(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+        todo!()
     }
 
     fn expr_stmt(&mut self) -> ParseResult<Stmt> {
@@ -169,13 +288,13 @@ impl<I> Parser<I>
         Ok(Stmt::If {
             condition,
             then_branch,
-            else_branch
+            else_branch,
         })
     }
 
     fn repeat(&mut self) -> ParseResult<Stmt> {
         self.tokens.next();
-        
+
         self.consume(
             TokenKind::NewLine,
             String::from("expected new line after keyword, `REPEAT`."),
@@ -196,7 +315,7 @@ impl<I> Parser<I>
             TokenKind::NewLine,
             String::from("expected new line after REPEAT loop condition."),
         )?;
-        
+
         Ok(Stmt::Repeat { body, until: condition })
     }
 
@@ -222,7 +341,7 @@ impl<I> Parser<I>
             TokenKind::NewLine,
             String::from("expected new line after keyword, `ENDWHILE`."),
         )?;
-        
+
         Ok(Stmt::While { body, condition })
     }
 
@@ -242,7 +361,7 @@ impl<I> Parser<I>
             true => {
                 self.tokens.next();
                 Some(self.expr()?)
-            },
+            }
             false => None
         };
 
@@ -266,7 +385,7 @@ impl<I> Parser<I>
             Expr::Variable(_) => (),
             _ => self.error(
                 String::from("FOR loop must specify variable to increment."),
-                None // todo: figure out how to insert token here.
+                None, // todo: figure out how to insert token here.
             )?,
         }
 
@@ -289,16 +408,16 @@ impl<I> Parser<I>
                             rhs: Box::new(match step {
                                 Some(s) => s,
                                 None => Expr::Literal(LiteralKind::Integer(1))
-                            })
+                            }),
                         }),
-                    })
+                    }),
                 ])),
                 condition: Expr::Binary {
-                  lhs: Box::new(counter),
-                  op: Token::new(TokenKind::NotEqual),
-                  rhs: Box::new(to)
-                }
-            }
+                    lhs: Box::new(counter),
+                    op: Token::new(TokenKind::NotEqual),
+                    rhs: Box::new(to),
+                },
+            },
         ]))
     }
 }

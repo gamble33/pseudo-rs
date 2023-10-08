@@ -1,7 +1,7 @@
 mod error;
 mod expr;
 mod stmt;
-mod type_name;
+#[allow(dead_code)] mod type_name;
 
 use std::iter::Peekable;
 use crate::lexer::token::{Token, TokenKind};
@@ -24,13 +24,13 @@ impl<I> Parser<I>
         }
     }
 
-    fn consume(&mut self, kind: TokenKind, msg: String) -> ParseResult<()> {
+    fn consume(&mut self, kind: TokenKind, msg: String) -> ParseResult<Token> {
         match self.tokens.next() {
-            Some(t) => {
-                if t.kind != kind {
-                    return self.error(msg, Some(t))
+            Some(token) => {
+                if token.kind != kind {
+                    return self.error(msg, Some(token))
                 }
-                return Ok(())
+                return Ok(token)
             }
             None => self.error(msg, None)
         }
