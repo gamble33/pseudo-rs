@@ -51,7 +51,7 @@ impl<I> Parser<I>
     where I: Iterator<Item=Token>
 {
     pub fn decl(&mut self) -> ParseResult<Stmt> {
-        match self.tokens.next() {
+        let decl = match self.tokens.next() {
             Some(token) => match &token.kind {
                 TokenKind::Keyword(keyword) => match keyword {
                     KeywordKind::Procedure => self.procedure(),
@@ -69,6 +69,17 @@ impl<I> Parser<I>
                 String::from("expected declaration."),
                 None,
             )
+        }?;
+
+        match self.tokens.next() {
+            Some(token) => match token.kind {
+                TokenKind::NewLine => Ok(decl),
+                _ => self.error(
+                    String::from("expected new line after declaration."),
+                    Some(token)
+                )
+            },
+            None => Ok(decl)
         }
     }
 
