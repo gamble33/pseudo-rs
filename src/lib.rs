@@ -1,7 +1,9 @@
 mod lexer;
 mod parser;
+mod codegen_c;
 #[allow(dead_code)] mod vm;
 
+use crate::codegen_c::generate;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 
@@ -30,4 +32,8 @@ pub fn compile_to_c(src: &str) {
             std::process::exit(0);
         }
     };
+
+    let c_src = generate(program);
+
+    let file = std::fs::File::create("main.c")
 }

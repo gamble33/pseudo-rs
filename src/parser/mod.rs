@@ -1,13 +1,13 @@
 mod error;
-mod expr;
-mod stmt;
+pub mod expr;
+pub mod stmt;
 #[allow(dead_code)]
-mod type_name;
+pub mod type_name;
 
 use std::iter::Peekable;
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::{ParseError, ParseResult};
-use crate::parser::stmt::Stmt;
+use crate::parser::stmt::Decl;
 
 pub struct Parser<I>
     where I: Iterator<Item=Token>
@@ -22,7 +22,7 @@ impl<I> Parser<I>
         Self { tokens }
     }
 
-    pub fn program(&mut self) -> Result<Vec<Stmt>, Vec<ParseError>> {
+    pub fn program(&mut self) -> Result<Vec<Decl>, Vec<ParseError>> {
         let mut declarations = Vec::new();
         let mut errors = Vec::new();
         let mut had_error = false;

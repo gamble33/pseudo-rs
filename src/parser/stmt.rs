@@ -5,6 +5,15 @@ use crate::parser::Parser;
 use crate::parser::type_name::TypeName;
 
 #[derive(Debug)]
+pub enum Decl {
+    Procedure {
+        name: String,
+        params: Vec<Param>,
+        body: Stmt,
+    },
+}
+
+#[derive(Debug)]
 pub enum Stmt {
     If {
         condition: Expr,
@@ -20,12 +29,6 @@ pub enum Stmt {
     While {
         body: Box<Stmt>,
         condition: Expr,
-    },
-
-    Procedure {
-        name: String,
-        params: Vec<Param>,
-        body: Box<Stmt>,
     },
 
     Call {
@@ -46,9 +49,9 @@ pub enum Stmt {
 
 #[derive(Debug)]
 pub struct Param {
-    name: String,
-    type_name: TypeName,
-    passing_mode: Option<PassingMode>,
+    pub name: String,
+    pub type_name: TypeName,
+    pub passing_mode: Option<PassingMode>,
 }
 
 #[derive(Debug)]
@@ -60,12 +63,12 @@ pub enum PassingMode {
 impl<I> Parser<I>
     where I: Iterator<Item=Token>
 {
-    pub fn decl(&mut self) -> ParseResult<Stmt> {
+    pub fn decl(&mut self) -> ParseResult<Decl> {
         let decl = match self.tokens.next() {
             Some(token) => match &token.kind {
                 TokenKind::Keyword(keyword) => match keyword {
                     KeywordKind::Procedure => self.procedure(),
-                    KeywordKind::Function => self.procedure(),
+                    KeywordKind::Function => self.function(),
                     _ => self.error(
                         String::from("expected declaration."),
                         Some(token),
@@ -173,7 +176,7 @@ impl<I> Parser<I>
         })
     }
 
-    fn procedure(&mut self) -> ParseResult<Stmt> {
+    fn procedure(&mut self) -> ParseResult<Decl> {
         let name = match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::Identifier(name) => name,
@@ -212,20 +215,20 @@ impl<I> Parser<I>
             String::from("expected new line after PROCEDURE header."),
         )?;
 
-        let body = Box::new(self.block(&[
+        let body = self.block(&[
             TokenKind::Keyword(KeywordKind::EndProcedure),
-        ])?);
+        ])?;
 
         self.tokens.next();
 
-        Ok(Stmt::Procedure {
+        Ok(Decl::Procedure {
             name,
             params,
             body,
         })
     }
 
-    fn function(&mut self) -> ParseResult<Stmt> {
+    fn function(&mut self) -> ParseResult<Decl> {
         todo!()
     }
 
