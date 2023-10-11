@@ -1,4 +1,4 @@
-use crate::codegen_c::Generator;
+use crate::codegen_c::{Generator, identifier};
 use crate::parser::stmt::Stmt;
 
 impl Generator {
@@ -15,8 +15,21 @@ impl Generator {
 
             Stmt::Repeat { .. } => unimplemented!(),
             Stmt::While { .. } => unimplemented!(),
-            Stmt::Call { .. } => unimplemented!(),
-            Stmt::VarDecl { .. } => unimplemented!(),
+            Stmt::Call { name, args } => {
+                self.target.push_str(&identifier(name));
+                self.target.push('(');
+                for arg in args {
+                    self.expr(arg);
+                    self.target.push(',');
+                }
+                self.target.pop();
+                self.target.push_str(");");
+            },
+            Stmt::VarDecl { name, type_name } => {
+                self.type_name(type_name);
+                self.target.push_str(&identifier(name));
+                self.target.push(';');
+            },
             Stmt::Expr(expr) => {
                 self.expr(expr);
                 self.target.push(';');

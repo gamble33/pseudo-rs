@@ -2,7 +2,7 @@ use crate::codegen_c::{Generator, identifier};
 use crate::parser::type_name::{BaseTypeName, TypeName};
 
 impl Generator {
-    pub fn type_name(&mut self, type_name: TypeName) {
+    pub fn type_name(&mut self, type_name: &TypeName) {
         match type_name {
             TypeName::BaseTypeName(base_type_name) => match base_type_name  {
                 BaseTypeName::Integer => {

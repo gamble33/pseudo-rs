@@ -3,6 +3,8 @@ mod parser;
 mod codegen_c;
 #[allow(dead_code)] mod vm;
 
+use std::io::Write;
+
 use crate::codegen_c::generate;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
@@ -35,5 +37,5 @@ pub fn compile_to_c(src: &str) {
 
     let c_src = generate(program);
 
-    let file = std::fs::File::create("main.c")
+    std::fs::write("./target.c", c_src).expect("Unable to write to target C source file.");
 }
