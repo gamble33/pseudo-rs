@@ -1,4 +1,4 @@
-use pseudo_rs::{compile_to_c, interpret};
+use pseudo_rs::compile_to_c;
 
 fn main() {
 
