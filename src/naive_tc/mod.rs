@@ -19,10 +19,10 @@ impl TypeChecker {
 
         // todo: first pass for function and type declarations
 
-        for decl in decls {
-            tc.decl();
+        let type_checked_ast = decls.iter().map(|decl| tc.decl(decl));
+
+        
 //            i love you silllyyyyyy
-        }
         todo!()
     }
 }
