@@ -1,11 +1,18 @@
 PROCEDURE DoStuff
-    DECLARE Age : INTEGER 
-    Age <- 18
-    IF Age >= 18 THEN
-        OUTPUT 9
-    ELSE
-        OUTPUT 69
-    ENDIF
+    DECLARE i : INTEGER
+    i <- 1
+
+    WHILE i < 10
+        OUTPUT i
+        i <- i + 1
+    ENDWHILE
+
+    i <- 1
+
+    REPEAT
+        OUTPUT i
+        i <- i + 1       
+    UNTIL i = 10
 ENDPROCEDURE
 
 PROCEDURE Main

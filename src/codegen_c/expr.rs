@@ -1,14 +1,14 @@
 use crate::codegen_c::Generator;
 use crate::codegen_c::identifier;
 use crate::parser::expr::{Expr, LiteralKind};
-use crate::lexer::token::TokenKind;
+use crate::lexer::token::{TokenKind, KeywordKind};
 
 impl Generator {
     pub fn expr(&mut self, expr: &Expr) {
         match expr {
             Expr::Binary { lhs, op, rhs } => {
                 self.expr(lhs);
-                match op.kind {
+                match &op.kind {
                     TokenKind::Keyword(_) => todo!(),
                     TokenKind::Plus => self.target.push_str("+ "),
                     TokenKind::Minus => self.target.push_str("- "),
@@ -24,7 +24,18 @@ impl Generator {
                 }
                 self.expr(rhs);
             },
-            Expr::Logical { lhs, op, rhs } => todo!(),
+            Expr::Logical { lhs, op, rhs } => {
+                self.expr(lhs);
+                match &op.kind {
+                    TokenKind::Keyword(keyword) => match keyword {
+                        KeywordKind::Or => self.target.push_str("|| "),
+                        KeywordKind::And => self.target.push_str("&& "),
+                        _ => unreachable!()
+                    }
+                    _ => unreachable!()
+                }
+                self.expr(rhs);
+            },
             Expr::Unary { op, expr } => todo!(),
             Expr::Assignment { target, value } => {
                 self.expr(target);

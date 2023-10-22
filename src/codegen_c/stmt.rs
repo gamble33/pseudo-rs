@@ -19,8 +19,19 @@ impl Generator {
                 
             }
 
-            Stmt::Repeat { .. } => unimplemented!(),
-            Stmt::While { .. } => unimplemented!(),
+            Stmt::Repeat { body, until } => {
+                self.target.push_str("do ");
+                self.stmt(body);
+                self.target.push_str("while(!(");
+                self.expr(until);
+                self.target.push_str("));");
+            },
+            Stmt::While { body, condition } => {
+                self.target.push_str("while(");
+                self.expr(condition);
+                self.target.push(')');
+                self.stmt(body);
+            },
             Stmt::Call { name, args } => {
                 self.target.push_str(&identifier(name));
                 self.target.push('(');
