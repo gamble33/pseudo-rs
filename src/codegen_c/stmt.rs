@@ -9,8 +9,14 @@ impl Generator {
                 self.expr(condition);
                 self.target.push(')');
                 self.stmt(then_branch.as_ref());
-                self.target.push_str("else");
-                self.stmt(then_branch.as_ref());
+                match else_branch {
+                    Some(branch) => {
+                        self.target.push_str("else");
+                        self.stmt(branch);
+                    }
+                    _ => ()
+                }
+                
             }
 
             Stmt::Repeat { .. } => unimplemented!(),
@@ -18,11 +24,13 @@ impl Generator {
             Stmt::Call { name, args } => {
                 self.target.push_str(&identifier(name));
                 self.target.push('(');
-                for arg in args {
-                    self.expr(arg);
-                    self.target.push(',');
+                if args.len() > 0 {
+                    for arg in args {
+                        self.expr(arg);
+                        self.target.push(',');
+                    }
+                    self.target.pop();
                 }
-                self.target.pop();
                 self.target.push_str(");");
             },
             Stmt::VarDecl { name, type_name } => {

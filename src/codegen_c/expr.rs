@@ -11,15 +11,15 @@ impl Generator {
                 match op.kind {
                     TokenKind::Keyword(_) => todo!(),
                     TokenKind::Plus => self.target.push_str("+ "),
-                    TokenKind::Minus => todo!(),
-                    TokenKind::Slash => todo!(),
-                    TokenKind::Star => todo!(),
-                    TokenKind::Less => todo!(),
-                    TokenKind::Greater => todo!(),
-                    TokenKind::LessEqual => todo!(),
-                    TokenKind::GreaterEqual => todo!(),
-                    TokenKind::NotEqual => todo!(),
-                    TokenKind::Equal => todo!(),
+                    TokenKind::Minus => self.target.push_str("- "),
+                    TokenKind::Slash => self.target.push_str("/ "),
+                    TokenKind::Star => self.target.push_str("* "),
+                    TokenKind::Less => self.target.push_str("< "),
+                    TokenKind::Greater => self.target.push_str("> "),
+                    TokenKind::LessEqual => self.target.push_str("<= "),
+                    TokenKind::GreaterEqual => self.target.push_str(">= "),
+                    TokenKind::NotEqual => self.target.push_str("!= "),
+                    TokenKind::Equal => self.target.push_str("== "),
                     _ => unreachable!()
                 }
                 self.expr(rhs);

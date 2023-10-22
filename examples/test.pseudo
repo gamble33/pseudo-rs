@@ -1,12 +1,13 @@
-PROCEDURE Add(A: INTEGER, B: INTEGER, BYREF Result: INTEGER)
-    DECLARE Test1: INTEGER
-    DECLARE Test2: CHAR
-    DECLARE Test3: BOOLEAN
-    Result <- A + B
+PROCEDURE DoStuff
+    DECLARE Age : INTEGER 
+    Age <- 18
+    IF Age >= 18 THEN
+        OUTPUT 9
+    ELSE
+        OUTPUT 69
+    ENDIF
 ENDPROCEDURE
 
 PROCEDURE Main
-    DECLARE Result : INTEGER
-    CALL Add(35, 34, Result)
-    OUTPUT Result
+    CALL DoStuff
 ENDPROCEDURE

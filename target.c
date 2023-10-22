@@ -8,4 +8,4 @@
     double: printf("%lf\n", (x)), \
     default: printf("Unknown type\n") \
 )
-void ident_Add(int ident_A,int ident_B,int ident_Result){int ident_Test1;char ident_Test2;bool ident_Test3;ident_Result = ident_A + ident_B ;}void main(void){int ident_Result;ident_Add(35 ,34 ,ident_Result );print(ident_Result );}
+void ident_DoStuff(void){int ident_Age;ident_Age = 18 ;if(ident_Age >= 18 ){print(9 );}else{print(69 );}}void main(void){ident_DoStuff();}

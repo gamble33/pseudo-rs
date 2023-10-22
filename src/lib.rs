@@ -3,8 +3,6 @@ mod parser;
 mod codegen_c;
 #[allow(dead_code)] mod vm;
 
-use std::io::Write;
-
 use crate::codegen_c::generate;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
@@ -26,7 +24,7 @@ pub fn compile_to_c(src: &str) {
                 println!("error: {}", error.msg);
                 match &error.token {
                     Some(token) => {
-                        println!("got `{:?}`", error.token);
+                        println!("got `{:?}`", token);
                     }
                     None => (),
                 }
