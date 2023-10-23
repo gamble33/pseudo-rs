@@ -501,6 +501,9 @@ impl<I> Parser<I>
             String::from("expected new line after identifier."),
         )?;
 
+        // todo: account for imperfect steps
+        // FOR i <- 0 TO 10 STEP 3      results in infinite loop.
+
         // de-sugaring FOR loops into WHILE loops
         Ok(Stmt::Block(vec![
             Stmt::Expr(initializer),

@@ -36,7 +36,13 @@ impl Generator {
                 }
                 self.expr(rhs);
             },
-            Expr::Unary { op, expr } => todo!(),
+            Expr::Unary { op, expr } => {
+                match op.kind {
+                    TokenKind::Minus => self.target.push_str("-"),
+                    _ => unreachable!(),
+                }
+                self.expr(expr);
+            },
             Expr::Assignment { target, value } => {
                 self.expr(target);
                 self.target.push_str("= ");
