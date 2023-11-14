@@ -1,6 +1,3 @@
 PROCEDURE Main
-    DECLARE i : INTEGER
-    FOR i <- 0 TO 10 STEP 2
-        OUTPUT -i
-    NEXT i
+    OUTPUT FALSE
 ENDPROCEDURE

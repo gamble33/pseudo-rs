@@ -51,9 +51,15 @@ impl Generator {
             Expr::Literal(literal) => {
                 match literal {
                     LiteralKind::Integer(i) => self.target.push_str(&format!("{} ", i.to_string())),
-                    LiteralKind::Character(_) => todo!(),
+                    LiteralKind::Character(ch) => self.target.push_str(&format!("(char)'{}'", *ch)),
                     LiteralKind::String(_) => todo!(),
-                    LiteralKind::Boolean(_) => todo!(),
+                    LiteralKind::Boolean(boolean) => {
+                        self.target.push_str("(bool)");
+                        match boolean {
+                            true => self.target.push_str("true"),
+                            false => self.target.push_str("false"),
+                        };
+                    },
                 }
             },
             Expr::Variable(name) => self.target.push_str(&format!("{} ", identifier(name))),

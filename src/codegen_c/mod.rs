@@ -18,6 +18,7 @@ pub fn generate(decls: Vec<Decl>) -> String {
     generator.target.push_str("#include <stdbool.h>\n");
     generator.target.push_str("#define print(x) _Generic((x), \\\n");
     generator.target.push_str("    char: printf(\"%c\\n\", (x)), \\\n");
+    generator.target.push_str("    bool: printf(\"%s\\n\", (x) ? \"TRUE\" : \"FALSE\"), \\\n");
     generator.target.push_str("    int: printf(\"%d\\n\", (x)), \\\n");
     generator.target.push_str("    long: printf(\"%ld\\n\", (x)), \\\n");
     generator.target.push_str("    float: printf(\"%f\\n\", (x)), \\\n");
