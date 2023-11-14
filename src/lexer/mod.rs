@@ -1,4 +1,6 @@
 pub mod token;
+#[cfg(test)]
+mod tests;
 
 use std::str::Chars;
 use std::iter::Peekable;
@@ -115,7 +117,7 @@ impl Lexer<'_> {
                 Some('O') => if check_keyword(chars.clone(), 2, "OLEAN") { return TokenKind::Keyword(KeywordKind::Boolean); },
                 Some('Y') => match chars.clone().nth(2) {
                     Some('R') => if check_keyword(chars.clone(), 3, "EF") { return TokenKind::Keyword(KeywordKind::ByRef); },
-                    Some('V') => if check_keyword(chars.clone(), 3, "VAL") { return TokenKind::Keyword(KeywordKind::ByVal); },
+                    Some('V') => if check_keyword(chars.clone(), 3, "AL") { return TokenKind::Keyword(KeywordKind::ByVal); },
                     _ => ()
                 }
                 _ => ()
@@ -187,6 +189,15 @@ impl Lexer<'_> {
                 Some('A') => if check_keyword(chars.clone(), 2, "NDOM") { return TokenKind::Keyword(KeywordKind::Random); },
 
                 Some('E') => match chars.clone().nth(2) {
+                    Some('A') => match chars.clone().nth(3) {
+                        Some('D') => match chars.clone().nth(4) {
+                            Some('F') => if check_keyword(chars.clone(), 5, "ILE") { return TokenKind::Keyword(KeywordKind::ReadFile); },
+                            None => { return TokenKind::Keyword(KeywordKind::Read); },
+                            _ => ()
+                                                    },
+                        Some('L') => if check_keyword(chars.clone(), 4, "") { return TokenKind::Keyword(KeywordKind::Real); },
+                        _ => ()
+                    },
                     Some('T') => match chars.clone().nth(3) {
                         Some('U') => match chars.clone().nth(4) {
                             Some('R') => match chars.clone().nth(5) {
