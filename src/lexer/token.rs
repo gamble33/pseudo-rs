@@ -48,7 +48,7 @@ pub enum TokenKind {
 pub enum TokenLiteralKind {
     Integer(i32),
     Character(char),
-    String(String),
+    Str(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -69,7 +69,7 @@ pub enum KeywordKind {
     Integer,
     Real,
     Char,
-    String,
+    Str,
     Boolean,
     Date,
 

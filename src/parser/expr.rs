@@ -1,6 +1,6 @@
-use crate::lexer::token::{TokenLiteralKind, Token, TokenKind, KeywordKind};
-use crate::parser::Parser;
+use crate::lexer::token::{KeywordKind, Token, TokenKind, TokenLiteralKind};
 use crate::parser::error::ParseResult;
+use crate::parser::Parser;
 
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -12,7 +12,7 @@ pub enum Expr {
     Logical {
         lhs: Box<Expr>,
         op: Token,
-        rhs: Box<Expr>
+        rhs: Box<Expr>,
     },
     Unary {
         op: Token,
@@ -20,7 +20,7 @@ pub enum Expr {
     },
     Assignment {
         target: Box<Expr>,
-        value: Box<Expr>
+        value: Box<Expr>,
     },
     Literal(LiteralKind),
     Variable(String),
@@ -34,7 +34,10 @@ pub enum LiteralKind {
     Boolean(bool),
 }
 
-impl<I> Parser<I> where I: Iterator<Item=Token> {
+impl<I> Parser<I>
+where
+    I: Iterator<Item = Token>,
+{
     pub fn expr(&mut self) -> ParseResult<Expr> {
         self.assignment()
     }
@@ -48,8 +51,8 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
             // Might need to change this...
             return Ok(Expr::Assignment {
                 target: Box::new(expr),
-                value: Box::new(self.expr()?)
-            })
+                value: Box::new(self.expr()?),
+            });
         }
 
         Ok(expr)
@@ -64,7 +67,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
             expr = Expr::Logical {
                 lhs: Box::new(expr),
                 op,
-                rhs: Box::new(rhs)
+                rhs: Box::new(rhs),
             }
         }
 
@@ -80,7 +83,7 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
             expr = Expr::Logical {
                 lhs: Box::new(expr),
                 op,
-                rhs: Box::new(rhs)
+                rhs: Box::new(rhs),
             }
         }
 
@@ -91,7 +94,6 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
 
     fn equality(&mut self) -> ParseResult<Expr> {
         let mut expr = self.comparison()?;
-
 
         while self.match_tokens(&[TokenKind::Equal, TokenKind::NotEqual]) {
             let op = self.tokens.next().unwrap();
@@ -109,7 +111,12 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
     fn comparison(&mut self) -> ParseResult<Expr> {
         let mut expr = self.term()?;
 
-        while self.match_tokens(&[TokenKind::Greater, TokenKind::GreaterEqual, TokenKind::Less, TokenKind::LessEqual]) {
+        while self.match_tokens(&[
+            TokenKind::Greater,
+            TokenKind::GreaterEqual,
+            TokenKind::Less,
+            TokenKind::LessEqual,
+        ]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.term()?;
             expr = Expr::Binary {
@@ -174,34 +181,42 @@ impl<I> Parser<I> where I: Iterator<Item=Token> {
                 Literal(literal) => match literal {
                     TokenLiteralKind::Integer(i) => Expr::Literal(LiteralKind::Integer(*i)),
                     TokenLiteralKind::Character(ch) => Expr::Literal(LiteralKind::Character(*ch)),
-                    TokenLiteralKind::String(string) => Expr::Literal(LiteralKind::String(string.to_owned())),
+                    TokenLiteralKind::Str(string) => {
+                        Expr::Literal(LiteralKind::String(string.to_owned()))
+                    }
                 },
                 Keyword(keyword) => match keyword {
                     KeywordKind::True => Expr::Literal(LiteralKind::Boolean(true)),
                     KeywordKind::False => Expr::Literal(LiteralKind::Boolean(false)),
-                    _ => return self.error(
-                        String::from("expected literal, identifier or grouping (not keyword)"),
-                        Some(t),
-                    )
+                    _ => {
+                        return self.error(
+                            String::from("expected literal, identifier or grouping (not keyword)"),
+                            Some(t),
+                        )
+                    }
                 },
                 Identifier(name) => Expr::Variable(name.to_owned()),
                 OpenParen => {
                     let expr = self.expr()?;
                     self.consume(
                         CloseParen,
-                        String::from("expected closing `)` after grouping expression")
+                        String::from("expected closing `)` after grouping expression"),
                     )?;
                     expr
                 }
-                _ => return self.error(
+                _ => {
+                    return self.error(
+                        String::from("expected literal, identifier or grouping"),
+                        Some(t),
+                    )
+                }
+            },
+            None => {
+                return self.error(
                     String::from("expected literal, identifier or grouping"),
-                    Some(t),
+                    None,
                 )
             }
-            None => return self.error(
-                String::from("expected literal, identifier or grouping"),
-                None,
-            )
         })
     }
 }

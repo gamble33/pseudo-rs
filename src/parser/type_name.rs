@@ -35,7 +35,7 @@ impl<I> Parser<I>
                 TokenKind::Keyword(keyword) => match keyword {
                     KeywordKind::Integer => Ok(TypeName::BaseTypeName(BaseTypeName::Integer)),
                     KeywordKind::Real => Ok(TypeName::BaseTypeName(BaseTypeName::Real)),
-                    KeywordKind::String => Ok(TypeName::BaseTypeName(BaseTypeName::String)),
+                    KeywordKind::Str => Ok(TypeName::BaseTypeName(BaseTypeName::String)),
                     KeywordKind::Char => Ok(TypeName::BaseTypeName(BaseTypeName::Char)),
                     KeywordKind::Boolean => Ok(TypeName::BaseTypeName(BaseTypeName::Boolean)),
                     KeywordKind::Date => Ok(TypeName::BaseTypeName(BaseTypeName::Date)),

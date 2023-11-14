@@ -16,7 +16,7 @@ fn smoke_test() {
             TokenKind::Identifier(String::from("Main")),
             TokenKind::NewLine,
             TokenKind::Keyword(KeywordKind::Output),
-            TokenKind::Literal(TokenLiteralKind::String(String::from("Hello, World!"))),
+            TokenKind::Literal(TokenLiteralKind::Str(String::from("Hello, World!"))),
             TokenKind::NewLine,
             TokenKind::Keyword(KeywordKind::EndProcedure),
         ],
@@ -105,7 +105,7 @@ fn keywords() {
     check_lexing("INTEGER", vec![TokenKind::Keyword(KeywordKind::Integer)]);
     check_lexing("REAL", vec![TokenKind::Keyword(KeywordKind::Real)]);
     check_lexing("CHAR", vec![TokenKind::Keyword(KeywordKind::Char)]);
-    check_lexing("STRING", vec![TokenKind::Keyword(KeywordKind::String)]);
+    check_lexing("STRING", vec![TokenKind::Keyword(KeywordKind::Str)]);
     check_lexing("BOOLEAN", vec![TokenKind::Keyword(KeywordKind::Boolean)]);
     check_lexing("DATE", vec![TokenKind::Keyword(KeywordKind::Date)]);
     check_lexing("ARRAY", vec![TokenKind::Keyword(KeywordKind::Array)]);
