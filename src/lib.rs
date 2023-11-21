@@ -1,18 +1,12 @@
 mod lexer;
 mod parser;
+mod naive_tc;
 mod codegen_c;
 #[allow(dead_code)] mod vm;
 
 use crate::codegen_c::generate;
 use crate::lexer::Lexer;
 use crate::parser::Parser;
-
-pub fn interpret(src: &str) {
-    let tokens = Lexer::new(src);
-    let mut parser = Parser::new(tokens.peekable());
-    println!("{:?}", parser.decl());
-    unimplemented!()
-}
 
 pub fn compile_to_c(src: &str) {
     let tokens = Lexer::new(src);
