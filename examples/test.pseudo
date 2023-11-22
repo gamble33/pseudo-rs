@@ -1,6 +1,12 @@
+PROCEDURE Fib(N: INTEGER)
+    IF N = 1 OR N = 2 THEN
+        OUTPUT 1
+    ELSE
+        CALL Fib(N - 1)
+        CALL Fib(N - 2)
+    ENDIF
+ENDPROCEDURE
+
 PROCEDURE Main
-    DECLARE Game : INTEGER
-    Game <- 69
-    OUTPUT 1 + 4 * 69 - Game
-    OUTPUT 3 * 69 + 1
+   CALL Fib(10) 
 ENDPROCEDURE

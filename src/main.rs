@@ -25,5 +25,10 @@ fn main() {
         std::process::exit(0);
     };
 
-    pseudo_rs::compile_to_c(&src);
+    if cli.compile_to_c {
+        pseudo_rs::compile_to_c(&src);
+        std::process::exit(0);
+    }
+
+    pseudo_rs::interpret(&src);
 }

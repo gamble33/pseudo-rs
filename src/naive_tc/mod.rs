@@ -1,4 +1,5 @@
 mod decl;
+mod stmt;
 
 use std::collections::HashMap;
 use crate::parser::stmt::Decl;
@@ -12,17 +13,8 @@ struct TypeChecker {
 }
 
 impl TypeChecker {
-    fn do_ya_thang(decls: Vec<Decl>) -> Vec<Decl> {
-        let mut tc = TypeChecker {
-            symbol_table: HashMap::new(),
-        };
-
-        // todo: first pass for function and type declarations
-
-        let type_checked_ast = decls.iter().map(|decl| tc.decl(decl));
-
-        
+    fn typecheck(&mut self, decls: Vec<Decl>) -> Vec<Decl> {
+        return decls.iter().map(|decl| self.decl(decl)).collect();
 //            i love you silllyyyyyy
-        todo!()
     }
 }

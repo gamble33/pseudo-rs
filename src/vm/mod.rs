@@ -1,5 +1,5 @@
 mod value;
-mod chunk;
+pub mod chunk;
 mod instruction;
 
 use crate::vm::value::Value;
