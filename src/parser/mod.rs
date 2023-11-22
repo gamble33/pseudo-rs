@@ -81,3 +81,13 @@ impl<I> Parser<I>
     }
 
 }
+
+pub fn print_parse_errors(errors: Vec<ParseError>) {
+    errors.iter().for_each(|error| {
+        println!("error: {}", error.msg);
+        match &error.token {
+            Some(token) => println!("got `{:?}`", token),
+            None => (),
+        }
+    });
+}

@@ -1,3 +1,6 @@
 PROCEDURE Main
-    OUTPUT FALSE
+    DECLARE Game : INTEGER
+    Game <- 69
+    OUTPUT 1 + 4 * 69 - Game
+    OUTPUT 3 * 69 + 1
 ENDPROCEDURE

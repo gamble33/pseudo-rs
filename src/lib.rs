@@ -1,6 +1,6 @@
-mod lexer;
-mod parser;
-mod naive_tc;
+pub mod lexer;
+pub mod parser;
+#[allow(dead_code, unused_variables)] mod naive_tc;
 mod codegen_c;
 #[allow(dead_code)] mod vm;
 
@@ -14,15 +14,7 @@ pub fn compile_to_c(src: &str) {
     let program = match Parser::new(tokens.peekable()).program() {
         Ok(decls) => decls,
         Err(errors) => {
-            errors.iter().for_each(|error| {
-                println!("error: {}", error.msg);
-                match &error.token {
-                    Some(token) => {
-                        println!("got `{:?}`", token);
-                    }
-                    None => (),
-                }
-            });
+            parser::print_parse_errors(errors);
             std::process::exit(0);
         }
     };
