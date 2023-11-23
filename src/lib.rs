@@ -2,7 +2,7 @@ pub mod lexer;
 pub mod parser;
 #[allow(dead_code, unused_variables)] mod naive_tc;
 mod codegen_c;
-mod codegen_bytecode;
+pub mod codegen_bytecode;
 #[allow(dead_code)] mod vm;
 
 use crate::codegen_c::generate;
@@ -20,8 +20,9 @@ pub fn interpret(src: &str) {
         }
     };
 
-    let _chunk = codegen_bytecode::emit(program);
+    let chunk = codegen_bytecode::emit(program);
 
+    vm::Vm::new().execute(chunk);
 }
 
 pub fn compile_to_c(src: &str) {

@@ -1,1 +1,1 @@
-pub type Value = f32;
+pub type Value = i32;

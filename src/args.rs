@@ -18,5 +18,6 @@ pub struct Cli {
 pub enum DebugMode {
     PrintTokens,
     PrintAst,
+    PrintBytecode,
 }
 

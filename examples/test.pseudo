@@ -1,12 +1,4 @@
-PROCEDURE Fib(N: INTEGER)
-    IF N = 1 OR N = 2 THEN
-        OUTPUT 1
-    ELSE
-        CALL Fib(N - 1)
-        CALL Fib(N - 2)
-    ENDIF
-ENDPROCEDURE
-
 PROCEDURE Main
-   CALL Fib(10) 
+    OUTPUT -2
+    OUTPUT 34 + 35
 ENDPROCEDURE

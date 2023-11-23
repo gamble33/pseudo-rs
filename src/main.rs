@@ -20,7 +20,7 @@ fn main() {
         match debug_mode {
             PrintAst => debug::print_ast(&src),
             PrintTokens => debug::print_tokens(&src),
-            
+            PrintBytecode => debug::print_bytecode(&src),
         };
         std::process::exit(0);
     };
