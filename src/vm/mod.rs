@@ -26,13 +26,21 @@ impl Vm {
                 println!("{}", self.stack.pop().unwrap());
             },
             Add => {
-                let a = self.stack.pop().unwrap();
                 let b = self.stack.pop().unwrap();
+                let a = self.stack.pop().unwrap();
                 self.stack.push(a + b);
             },
-            Sub => todo!(), 
-            Mul => todo!(),
-            Div => todo!(),
+            Sub => {
+                let b = self.stack.pop().unwrap();
+                let a = self.stack.pop().unwrap();
+                self.stack.push(a - b);
+            }, 
+            Mul => {
+                let b = self.stack.pop().unwrap();
+                let a = self.stack.pop().unwrap();
+                self.stack.push(a * b);
+            },
+            Div => unimplemented!(),
             Gt => todo!(),
             GtEq => todo!(),
             Eq => todo!(),
