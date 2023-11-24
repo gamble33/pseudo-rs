@@ -1,22 +1,7 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::ParseResult;
 use crate::parser::Parser;
-
-#[derive(Debug)]
-pub enum TypeName {
-    BaseTypeName(BaseTypeName),
-}
-
-#[derive(Debug)]
-pub enum BaseTypeName {
-    Integer,
-    Real,
-    String,
-    Char,
-    Boolean,
-    Date,
-    Identifier(String),
-}
+use crate::ir::ast::{BaseTypeName, TypeName};
 
 impl<I> Parser<I>
     where I: Iterator<Item=Token>

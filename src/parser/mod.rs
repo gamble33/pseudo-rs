@@ -7,7 +7,7 @@ pub mod type_name;
 use std::iter::Peekable;
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::{ParseError, ParseResult};
-use crate::parser::stmt::Decl;
+use crate::ir::ast::Decl;
 
 pub struct Parser<I>
     where I: Iterator<Item=Token>

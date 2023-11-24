@@ -1,5 +1,5 @@
 use crate::codegen_c::{Generator, identifier};
-use crate::parser::stmt::Stmt;
+use crate::ir::ast::Stmt;
 
 impl Generator {
     pub fn stmt(&mut self, stmt: &Stmt) {

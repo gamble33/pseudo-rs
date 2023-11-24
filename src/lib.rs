@@ -1,3 +1,4 @@
+pub mod ir;
 pub mod lexer;
 pub mod parser;
 #[allow(dead_code, unused_variables)] mod naive_tc;

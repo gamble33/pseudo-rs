@@ -1,6 +1,6 @@
 use super::Generator;
 use crate::{
-    parser::expr::{Expr, LiteralKind},
+    ir::ast::{Expr, LiteralKind},
     lexer::token::TokenKind::*,
     vm::{instr::Instr, value::Value}
 };

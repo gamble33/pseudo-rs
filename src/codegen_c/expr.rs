@@ -1,6 +1,6 @@
 use crate::codegen_c::Generator;
 use crate::codegen_c::identifier;
-use crate::parser::expr::{Expr, LiteralKind};
+use crate::ir::ast::{Expr, LiteralKind};
 use crate::lexer::token::{TokenKind, KeywordKind};
 
 impl Generator {

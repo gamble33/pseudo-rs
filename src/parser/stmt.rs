@@ -1,64 +1,7 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::ParseResult;
-use crate::parser::expr::{Expr, LiteralKind};
 use crate::parser::Parser;
-use crate::parser::type_name::TypeName;
-
-#[derive(Debug)]
-pub enum Decl {
-    Procedure {
-        name: String,
-        params: Vec<Param>,
-        body: Stmt,
-    },
-}
-
-#[derive(Debug)]
-pub enum Stmt {
-    If {
-        condition: Expr,
-        then_branch: Box<Stmt>,
-        else_branch: Option<Box<Stmt>>,
-    },
-
-    Repeat {
-        body: Box<Stmt>,
-        until: Expr,
-    },
-
-    While {
-        body: Box<Stmt>,
-        condition: Expr,
-    },
-
-    Call {
-        name: String,
-        args: Vec<Expr>
-    },
-
-    VarDecl {
-        name: String,
-        type_name: TypeName,
-    },
-
-    Expr(Expr),
-    Output(Expr),
-    Input(Expr),
-    Block(Vec<Stmt>),
-}
-
-#[derive(Debug)]
-pub struct Param {
-    pub name: String,
-    pub type_name: TypeName,
-    pub passing_mode: Option<PassingMode>,
-}
-
-#[derive(Debug)]
-pub enum PassingMode {
-    ByVal,
-    ByRef,
-}
+use crate::ir::ast::{Expr, LiteralKind, Stmt, Decl, PassingMode, Param};
 
 impl<I> Parser<I>
     where I: Iterator<Item=Token>

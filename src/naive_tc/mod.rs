@@ -2,7 +2,7 @@ mod decl;
 mod stmt;
 
 use std::collections::HashMap;
-use crate::parser::stmt::Decl;
+use crate::ir::ast::Decl;
 
 enum Type {
 

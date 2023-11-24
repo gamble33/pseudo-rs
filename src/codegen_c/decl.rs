@@ -1,5 +1,5 @@
 use crate::codegen_c::{identifier, Generator};
-use crate::parser::stmt::{Decl, Param};
+use crate::ir::ast::{Decl, Param};
 
 impl Generator {
     pub fn decl(&mut self, decl: Decl) {

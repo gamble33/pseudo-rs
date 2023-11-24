@@ -3,7 +3,7 @@ mod stmt;
 mod type_name;
 mod expr;
 
-use crate::parser::stmt::Decl;
+use crate::ir::ast::Decl;
 
 struct Generator {
     target: String,

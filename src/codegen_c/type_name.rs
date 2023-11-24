@@ -1,5 +1,5 @@
 use crate::codegen_c::{Generator, identifier};
-use crate::parser::type_name::{BaseTypeName, TypeName};
+use crate::ir::ast::{BaseTypeName, TypeName};
 
 impl Generator {
     pub fn type_name(&mut self, type_name: &TypeName) {

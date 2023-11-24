@@ -1,38 +1,7 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind, TokenLiteralKind};
 use crate::parser::error::ParseResult;
 use crate::parser::Parser;
-
-#[derive(Debug, Clone)]
-pub enum Expr {
-    Binary {
-        lhs: Box<Expr>,
-        op: Token,
-        rhs: Box<Expr>,
-    },
-    Logical {
-        lhs: Box<Expr>,
-        op: Token,
-        rhs: Box<Expr>,
-    },
-    Unary {
-        op: Token,
-        expr: Box<Expr>,
-    },
-    Assignment {
-        target: Box<Expr>,
-        value: Box<Expr>,
-    },
-    Literal(LiteralKind),
-    Variable(String),
-}
-
-#[derive(Debug, Clone)]
-pub enum LiteralKind {
-    Integer(i32),
-    Character(char),
-    String(String),
-    Boolean(bool),
-}
+use crate::ir::ast::{Expr, LiteralKind};
 
 impl<I> Parser<I>
 where

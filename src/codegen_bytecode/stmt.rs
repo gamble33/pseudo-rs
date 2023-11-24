@@ -1,4 +1,4 @@
-use crate::{parser::stmt::Stmt, vm::instr::Instr};
+use crate::{ir::ast::Stmt, vm::instr::Instr};
 
 use super::Generator;
 
