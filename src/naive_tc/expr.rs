@@ -7,13 +7,24 @@ impl TypeChecker {
     pub fn expr(&mut self, expr: ExprKind) -> hlir::Expr {
         match expr {
             ExprKind::Binary { lhs, op, rhs } => {
+                use TokenKind::*;
                 let lhs = self.expr(*lhs);
                 let rhs = self.expr(*rhs);
                 if lhs.pseudo_type != rhs.pseudo_type {
                     unimplemented!("Mismatched types on binary expr");
                 }
+                let pseudo_type = match op.kind {
+                    Greater | GreaterEqual | Less | LessEqual => {
+                        if !match_types(&lhs.pseudo_type, &[Type::Real, Type::Integer]) {
+                            unimplemented!("Cannot do comparison of anything other than INTEGER or REAL");
+                        }
+                        Type::Boolean
+                    },
+                    Equal | NotEqual => Type::Boolean,
+                    _ => lhs.pseudo_type,
+                };
                 hlir::Expr {
-                    pseudo_type: lhs.pseudo_type,
+                    pseudo_type: pseudo_type,
                     expr_kind: hlir::ExprKind::Binary {
                         lhs: Box::new(lhs),
                         op,

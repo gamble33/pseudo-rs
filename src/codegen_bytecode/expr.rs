@@ -2,7 +2,7 @@ use super::Generator;
 use crate::{
     ir::ast::LiteralKind,
     ir::hlir::{Expr, ExprKind},
-    lexer::token::{TokenKind::*, KeywordKind},
+    lexer::token::{KeywordKind, TokenKind::*},
     vm::{instr::Instr, value::Value},
 };
 
@@ -24,10 +24,19 @@ impl Generator {
                     Slash => self.target.instructions.push(Instr::Div(lhs.pseudo_type)),
                     Greater => self.target.instructions.push(Instr::Gt(lhs.pseudo_type)),
                     GreaterEqual => self.target.instructions.push(Instr::GtEq(lhs.pseudo_type)),
-                    Less => unimplemented!(),
-                    LessEqual => unimplemented!(),
+                    Less => {
+                        self.target.instructions.push(Instr::GtEq(lhs.pseudo_type));
+                        self.target.instructions.push(Instr::Not);
+                    }
+                    LessEqual => {
+                        self.target.instructions.push(Instr::Gt(lhs.pseudo_type));
+                        self.target.instructions.push(Instr::Not);
+                    }
                     Equal => self.target.instructions.push(Instr::Eq(lhs.pseudo_type)),
-                    NotEqual => unimplemented!(),
+                    NotEqual => {
+                        self.target.instructions.push(Instr::Eq(lhs.pseudo_type));
+                        self.target.instructions.push(Instr::Not);
+                    }
                     _ => unreachable!(),
                 }
             }

@@ -51,6 +51,27 @@ impl Vm {
             };
         }
 
+        macro_rules! binary_comparison {
+            ($op:tt, $type:expr) => {
+                {
+                    let b = self.stack.pop().unwrap();
+                    let a = self.stack.pop().unwrap();
+                    unsafe {
+                        match $type {
+                            Type::Integer => self.stack.push(Value {
+                                boolean: a.integer $op b.integer,
+                            }),
+                            Type::Real => self.stack.push(Value {
+                                boolean: a.real $op b.real,
+                            }),
+                            Type::Char => unimplemented!("Do we want comparison of CHARs?"),
+                            Type::Boolean => unreachable!(),
+                        };
+                    }
+                }
+            };
+        }
+
         chunk.instructions.iter().for_each(|instr| match instr {
             Const(index) => {
                 let value = chunk.constants.get(*index).unwrap();
@@ -62,9 +83,19 @@ impl Vm {
             Sub(pseudo_type) => binary_op!(-, pseudo_type),
             Mul(pseudo_type) => binary_op!(*, pseudo_type),
             Div(_pseudo_type) => unimplemented!(),
-            Gt(_pseudo_type) => todo!(),
-            GtEq(_pseudo_type) => todo!(),
-            Eq(_pseudo_type) => todo!(),
+            Gt(pseudo_type) => binary_comparison!(>, pseudo_type),
+            GtEq(pseudo_type) => binary_comparison!(>=, pseudo_type),
+            Eq(pseudo_type) => unsafe {
+                let b = self.stack.pop().unwrap();
+                let a = self.stack.pop().unwrap();
+                let equality = match pseudo_type {
+                    Type::Integer => a.integer == b.integer,
+                    Type::Real => a.real == b.real,
+                    Type::Char => a.char == b.char,
+                    Type::Boolean => a.boolean == b.boolean,
+                };
+                self.stack.push(Value {boolean: equality});
+            },
             Neg(pseudo_type) => {
                 let value = self.stack.pop().unwrap();
                 unsafe {
@@ -73,17 +104,16 @@ impl Vm {
                             integer: -value.integer,
                         }),
                         Type::Real => self.stack.push(Value { real: -value.real }),
-                        Type::Char => unreachable!(),
-                        Type::Boolean => unreachable!(),
+                        _ => unreachable!(),
                     };
                 };
-            },
+            }
             Not => unsafe {
                 let boolean = !self.stack.pop().unwrap().boolean;
-                self.stack.push(Value {boolean});
+                self.stack.push(Value { boolean });
             },
-            True => self.stack.push(Value {boolean: true}),
-            False => self.stack.push(Value {boolean: false}),
+            True => self.stack.push(Value { boolean: true }),
+            False => self.stack.push(Value { boolean: false }),
         });
     }
 }
