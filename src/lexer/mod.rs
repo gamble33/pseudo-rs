@@ -42,6 +42,7 @@ impl Iterator for Lexer<'_> {
             ',' => Comma,
             ':' => Colon,
             '^' => Caret,
+            '&' => Ampersand,
 
             '<' => match self.src.peek() {
                 Some(c) => match c {

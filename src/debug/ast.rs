@@ -159,6 +159,7 @@ fn print_operator(op: &Token) {
             Minus => "-",
             Star => "*",
             Slash => "/",
+            Ampersand => "&",
             _ => unreachable!(),
         }
     );

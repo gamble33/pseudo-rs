@@ -1,10 +1,12 @@
 pub mod chunk;
 pub mod instr;
 pub mod value;
+pub mod obj;
 
 use crate::{
+    as_rs_string,
     ir::hlir::Type,
-    vm::{chunk::Chunk, instr::Instr::*, value::Value},
+    vm::{chunk::Chunk, instr::Instr::*, value::Value, obj::allocate_string},
 };
 
 pub struct Vm {
@@ -25,6 +27,7 @@ impl Vm {
                         Type::Real => { $(let $ident = self.stack.pop().unwrap().real;)* $expr },
                         Type::Char => { $(let $ident = self.stack.pop().unwrap().char;)* $expr },
                         Type::Boolean => { $(let $ident = self.stack.pop().unwrap().boolean;)* $expr },
+                        Type::String => { $(let $ident = as_rs_string!(self.stack.pop().unwrap().obj);)* $expr },
                     }
                 }
             };
@@ -43,8 +46,7 @@ impl Vm {
                             Type::Real => self.stack.push(Value {
                                 real: a.real $op b.real,
                             }),
-                            Type::Char => unreachable!(),
-                            Type::Boolean => unreachable!(),
+                            _ => unreachable!()
                         };
                     }
                 }
@@ -65,7 +67,7 @@ impl Vm {
                                 boolean: a.real $op b.real,
                             }),
                             Type::Char => unimplemented!("Do we want comparison of CHARs?"),
-                            Type::Boolean => unreachable!(),
+                            _ => unreachable!(),
                         };
                     }
                 }
@@ -79,6 +81,14 @@ impl Vm {
             }
             Ret => todo!(),
             Output(pseudo_type) => execute_for_type!(println!("{}", value), pseudo_type, value),
+            Concat => unsafe {
+                let b = as_rs_string!(self.stack.pop().unwrap().obj);
+                let a = as_rs_string!(self.stack.pop().unwrap().obj);
+                let mut result = String::new();
+                result.push_str(a);
+                result.push_str(b);
+                self.stack.push(Value { obj: allocate_string(result) });
+            }
             Add(pseudo_type) => binary_op!(+, pseudo_type),
             Sub(pseudo_type) => binary_op!(-, pseudo_type),
             Mul(pseudo_type) => binary_op!(*, pseudo_type),
@@ -93,6 +103,7 @@ impl Vm {
                     Type::Real => a.real == b.real,
                     Type::Char => a.char == b.char,
                     Type::Boolean => a.boolean == b.boolean,
+                    Type::String => todo!(),
                 };
                 self.stack.push(Value {boolean: equality});
             },

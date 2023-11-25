@@ -29,6 +29,7 @@ pub enum TokenKind {
     Comma,
     Caret,
     Dot,
+    Ampersand,
 
     Plus,
     Minus,

@@ -7,6 +7,7 @@ pub enum Type {
     Real,
     Char,
     Boolean,
+    String,
 }
 
 #[derive(Debug)]

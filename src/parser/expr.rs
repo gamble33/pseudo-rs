@@ -101,7 +101,7 @@ where
     fn term(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.factor()?;
 
-        while self.match_tokens(&[TokenKind::Plus, TokenKind::Minus]) {
+        while self.match_tokens(&[TokenKind::Plus, TokenKind::Minus, TokenKind::Ampersand]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.factor()?;
             expr = ExprKind::Binary {

@@ -6,6 +6,8 @@ pub enum Instr {
     Const(usize),
     Ret,
     Output(Type),
+    /// Concatenates two strings
+    Concat,
     Add(Type),
     Sub(Type),
     Mul(Type),

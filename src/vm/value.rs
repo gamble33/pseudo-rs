@@ -1,4 +1,4 @@
-// pub type Value = i32;
+use super::obj::Obj;
 
 #[derive(Clone, Copy)]
 pub union Value {
@@ -6,4 +6,5 @@ pub union Value {
     pub real: f64,
     pub boolean: bool,
     pub char: char,
+    pub obj: *const Obj,
 }

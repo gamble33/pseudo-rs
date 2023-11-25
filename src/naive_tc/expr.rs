@@ -21,6 +21,12 @@ impl TypeChecker {
                         Type::Boolean
                     },
                     Equal | NotEqual => Type::Boolean,
+                    Ampersand => {
+                        if lhs.pseudo_type != Type::String {
+                            unimplemented!("Can only concatenate two strings");
+                        }
+                        Type::String
+                    }
                     _ => lhs.pseudo_type,
                 };
                 hlir::Expr {
@@ -61,7 +67,7 @@ impl TypeChecker {
                 let pseudo_type = match lit {
                     LiteralKind::Integer(_) => hlir::Type::Integer,
                     LiteralKind::Character(_) => hlir::Type::Char,
-                    LiteralKind::String(_) => unimplemented!(),
+                    LiteralKind::String(_) => hlir::Type::String,
                     LiteralKind::Boolean(_) => hlir::Type::Boolean,
                 };
                 hlir::Expr {

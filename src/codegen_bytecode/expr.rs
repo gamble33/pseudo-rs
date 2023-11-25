@@ -3,7 +3,7 @@ use crate::{
     ir::ast::LiteralKind,
     ir::hlir::{Expr, ExprKind},
     lexer::token::{KeywordKind, TokenKind::*},
-    vm::{instr::Instr, value::Value},
+    vm::{instr::Instr, value::Value, obj::{Obj, ObjString, ObjKind}},
 };
 
 impl Generator {
@@ -18,6 +18,7 @@ impl Generator {
                 self.expr(lhs);
                 self.expr(rhs);
                 match op.kind {
+                    Ampersand => self.target.instructions.push(Instr::Concat),
                     Plus => self.target.instructions.push(Instr::Add(lhs.pseudo_type)),
                     Minus => self.target.instructions.push(Instr::Sub(lhs.pseudo_type)),
                     Star => self.target.instructions.push(Instr::Mul(lhs.pseudo_type)),
@@ -54,7 +55,12 @@ impl Generator {
                     true => Instr::True,
                     false => Instr::False,
                 }),
-                LiteralKind::String(_) => unimplemented!(),
+                LiteralKind::String(string) => self.emit_constant(Value {
+                    obj: Box::into_raw(Box::new(ObjString {
+                        obj: Obj { kind: ObjKind::String },
+                        string: string.clone(),
+                    })) as *const Obj
+                }) ,
                 LiteralKind::Character(ch) => self.emit_constant(Value {char: *ch}),
             },
             _ => unimplemented!(),

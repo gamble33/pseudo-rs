@@ -1,5 +1,3 @@
 PROCEDURE Main
-    OUTPUT 'S'
-    OUTPUT 'A' = 'A'
-    OUTPUT 'A' = 'B'
+    OUTPUT "Hello, " & "World!"
 ENDPROCEDURE
