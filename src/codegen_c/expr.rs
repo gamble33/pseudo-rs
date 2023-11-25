@@ -1,12 +1,12 @@
 use crate::codegen_c::Generator;
 use crate::codegen_c::identifier;
-use crate::ir::ast::{Expr, LiteralKind};
+use crate::ir::ast::{ExprKind, LiteralKind};
 use crate::lexer::token::{TokenKind, KeywordKind};
 
 impl Generator {
-    pub fn expr(&mut self, expr: &Expr) {
+    pub fn expr(&mut self, expr: &ExprKind) {
         match expr {
-            Expr::Binary { lhs, op, rhs } => {
+            ExprKind::Binary { lhs, op, rhs } => {
                 self.expr(lhs);
                 match &op.kind {
                     TokenKind::Keyword(_) => todo!(),
@@ -24,7 +24,7 @@ impl Generator {
                 }
                 self.expr(rhs);
             },
-            Expr::Logical { lhs, op, rhs } => {
+            ExprKind::Logical { lhs, op, rhs } => {
                 self.expr(lhs);
                 match &op.kind {
                     TokenKind::Keyword(keyword) => match keyword {
@@ -36,19 +36,19 @@ impl Generator {
                 }
                 self.expr(rhs);
             },
-            Expr::Unary { op, expr } => {
+            ExprKind::Unary { op, expr } => {
                 match op.kind {
                     TokenKind::Minus => self.target.push_str("-"),
                     _ => unreachable!(),
                 }
                 self.expr(expr);
             },
-            Expr::Assignment { target, value } => {
+            ExprKind::Assignment { target, value } => {
                 self.expr(target);
                 self.target.push_str("= ");
                 self.expr(value);
             },
-            Expr::Literal(literal) => {
+            ExprKind::Literal(literal) => {
                 match literal {
                     LiteralKind::Integer(i) => self.target.push_str(&format!("{} ", i.to_string())),
                     LiteralKind::Character(ch) => self.target.push_str(&format!("(char)'{}'", *ch)),
@@ -62,7 +62,7 @@ impl Generator {
                     },
                 }
             },
-            Expr::Variable(name) => self.target.push_str(&format!("{} ", identifier(name))),
+            ExprKind::Variable(name) => self.target.push_str(&format!("{} ", identifier(name))),
         }
     }
 }

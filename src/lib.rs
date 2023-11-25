@@ -21,9 +21,11 @@ pub fn interpret(src: &str) {
         }
     };
 
-    let chunk = codegen_bytecode::emit(program);
+    let _hlir = naive_tc::typecheck(program);
 
-    vm::Vm::new().execute(chunk);
+    // let chunk = codegen_bytecode::emit(program);
+
+    // vm::Vm::new().execute(chunk);
 }
 
 pub fn compile_to_c(src: &str) {

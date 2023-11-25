@@ -1,20 +1,18 @@
 mod decl;
 mod stmt;
+mod expr;
+mod types;
 
+use crate::ir::{hlir, ast};
 use std::collections::HashMap;
-use crate::ir::ast::Decl;
-
-enum Type {
-
-}
 
 struct TypeChecker {
-    symbol_table: HashMap<String, Type>
+    symbol_table: HashMap<String, hlir::Type>
 }
 
-impl TypeChecker {
-    fn typecheck(&mut self, decls: Vec<Decl>) -> Vec<Decl> {
-        return decls.iter().map(|decl| self.decl(decl)).collect();
-//            i love you silllyyyyyy
-    }
+pub fn typecheck(decls: Vec<ast::Decl>) -> Vec<hlir::Decl> {
+    let mut tc = TypeChecker {
+        symbol_table: HashMap::new(),
+    };
+    decls.into_iter().map(|decl| tc.decl(decl)).collect()
 }

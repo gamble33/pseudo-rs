@@ -1,7 +1,7 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::ParseResult;
 use crate::parser::Parser;
-use crate::ir::ast::{Expr, LiteralKind, Stmt, Decl, PassingMode, Param};
+use crate::ir::ast::{ExprKind, LiteralKind, Stmt, Decl, PassingMode, Param};
 
 impl<I> Parser<I>
     where I: Iterator<Item=Token>
@@ -432,7 +432,7 @@ impl<I> Parser<I>
         let counter = self.expr()?;
 
         match counter {
-            Expr::Variable(_) => (),
+            ExprKind::Variable(_) => (),
             _ => self.error(
                 String::from("FOR loop must specify variable to increment."),
                 None, // todo: figure out how to insert token here.
@@ -453,19 +453,19 @@ impl<I> Parser<I>
             Stmt::While {
                 body: Box::new(Stmt::Block(vec![
                     body,
-                    Stmt::Expr(Expr::Assignment {
+                    Stmt::Expr(ExprKind::Assignment {
                         target: Box::new(counter.clone()),
-                        value: Box::new(Expr::Binary {
+                        value: Box::new(ExprKind::Binary {
                             lhs: Box::new(counter.clone()),
                             op: Token::new(TokenKind::Plus),
                             rhs: Box::new(match step {
                                 Some(s) => s,
-                                None => Expr::Literal(LiteralKind::Integer(1))
+                                None => ExprKind::Literal(LiteralKind::Integer(1))
                             }),
                         }),
                     }),
                 ])),
-                condition: Expr::Binary {
+                condition: ExprKind::Binary {
                     lhs: Box::new(counter),
                     op: Token::new(TokenKind::NotEqual),
                     rhs: Box::new(to),

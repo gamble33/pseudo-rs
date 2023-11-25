@@ -1,5 +1,5 @@
 use pseudo_rs::{
-    ir::ast::{BaseTypeName, Expr, Stmt, TypeName, Decl, LiteralKind},
+    ir::ast::{BaseTypeName, ExprKind, Stmt, TypeName, Decl, LiteralKind},
     lexer::{token::Token, token::TokenKind, Lexer},
     parser,
     parser::Parser,
@@ -81,32 +81,32 @@ fn print_stmt(stmt: &Stmt, depth: u32) {
     }
 }
 
-fn print_expr(expr: &Expr, depth: u32) {
+fn print_expr(expr: &ExprKind, depth: u32) {
     print_depth(depth);
     match expr {
-        Expr::Unary { op, expr } => {
+        ExprKind::Unary { op, expr } => {
             print_operator(op);
             print_expr(expr, depth + 1);
         }
-        Expr::Binary { lhs, op, rhs } => {
+        ExprKind::Binary { lhs, op, rhs } => {
             print_operator(op);
             print_expr(lhs, depth + 1);
             print_expr(rhs, depth + 1);
         }
-        Expr::Logical { lhs, op, rhs } => {
+        ExprKind::Logical { lhs, op, rhs } => {
             print_operator(op);
             print_expr(lhs, depth + 1);
             print_expr(rhs, depth + 1);
         }
-        Expr::Assignment { target, value } => {
+        ExprKind::Assignment { target, value } => {
             println!("x <- y");
             print_expr(target, depth + 1);
             print_expr(value, depth + 1);
         }
-        Expr::Variable(name) => {
+        ExprKind::Variable(name) => {
             println!("var {}", name);
         }
-        Expr::Literal(literal) => match literal {
+        ExprKind::Literal(literal) => match literal {
             LiteralKind::Integer(i) => println!("{}", i),
             LiteralKind::Character(ch) => println!("'{}'", ch),
             LiteralKind::String(string) => println!("\"{}\"", string),

@@ -17,24 +17,24 @@ pub enum BaseTypeName {
 }
 
 #[derive(Debug, Clone)]
-pub enum Expr {
+pub enum ExprKind {
     Binary {
-        lhs: Box<Expr>,
+        lhs: Box<ExprKind>,
         op: Token,
-        rhs: Box<Expr>,
+        rhs: Box<ExprKind>,
     },
     Logical {
-        lhs: Box<Expr>,
+        lhs: Box<ExprKind>,
         op: Token,
-        rhs: Box<Expr>,
+        rhs: Box<ExprKind>,
     },
     Unary {
         op: Token,
-        expr: Box<Expr>,
+        expr: Box<ExprKind>,
     },
     Assignment {
-        target: Box<Expr>,
-        value: Box<Expr>,
+        target: Box<ExprKind>,
+        value: Box<ExprKind>,
     },
     Literal(LiteralKind),
     Variable(String),
@@ -61,24 +61,24 @@ pub enum Decl {
 #[derive(Debug)]
 pub enum Stmt {
     If {
-        condition: Expr,
+        condition: ExprKind,
         then_branch: Box<Stmt>,
         else_branch: Option<Box<Stmt>>,
     },
 
     Repeat {
         body: Box<Stmt>,
-        until: Expr,
+        until: ExprKind,
     },
 
     While {
         body: Box<Stmt>,
-        condition: Expr,
+        condition: ExprKind,
     },
 
     Call {
         name: String,
-        args: Vec<Expr>
+        args: Vec<ExprKind>
     },
 
     VarDecl {
@@ -86,9 +86,9 @@ pub enum Stmt {
         type_name: TypeName,
     },
 
-    Expr(Expr),
-    Output(Expr),
-    Input(Expr),
+    Expr(ExprKind),
+    Output(ExprKind),
+    Input(ExprKind),
     Block(Vec<Stmt>),
 }
 
