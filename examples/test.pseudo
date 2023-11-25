@@ -1,19 +1,5 @@
 PROCEDURE Main
-    // TRUE
-    OUTPUT (TRUE = FALSE) = FALSE
-
-    // FALSE
-    OUTPUT 5 > 9
-
-    // TRUE
-    OUTPUT 160 >= 20
-
-    // FALSE
-    OUTPUT 47 <= 46
-
-    // TRUE
-    OUTPUT 46 <= 46
-
-    // TRUE
-    OUTPUT 9 < 10
+    OUTPUT 'S'
+    OUTPUT 'A' = 'A'
+    OUTPUT 'A' = 'B'
 ENDPROCEDURE

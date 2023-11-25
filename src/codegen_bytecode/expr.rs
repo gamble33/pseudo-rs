@@ -55,7 +55,7 @@ impl Generator {
                     false => Instr::False,
                 }),
                 LiteralKind::String(_) => unimplemented!(),
-                LiteralKind::Character(_) => unimplemented!(),
+                LiteralKind::Character(ch) => self.emit_constant(Value {char: *ch}),
             },
             _ => unimplemented!(),
         }
