@@ -1,4 +1,4 @@
-use crate::{ir::ast::Stmt, vm::instr::Instr};
+use crate::{ir::hlir::Stmt, vm::instr::Instr};
 
 use super::Generator;
 
@@ -18,7 +18,7 @@ impl Generator {
             },
             Stmt::While { body, condition } => todo!(),
             Stmt::Repeat { body, until } => todo!(),
-            Stmt::VarDecl { name, type_name } => todo!(),
+            Stmt::VarDecl { name, pseudo_type } => todo!(),
         }
     }
 }

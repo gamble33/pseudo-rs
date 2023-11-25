@@ -1,10 +1,12 @@
+pub mod codegen_bytecode;
+mod codegen_c;
 pub mod ir;
 pub mod lexer;
+#[allow(dead_code, unused_variables)]
+pub mod naive_tc;
 pub mod parser;
-#[allow(dead_code, unused_variables)] mod naive_tc;
-mod codegen_c;
-pub mod codegen_bytecode;
-#[allow(dead_code)] mod vm;
+#[allow(dead_code)]
+mod vm;
 
 use crate::codegen_c::generate;
 use crate::lexer::Lexer;
@@ -21,11 +23,11 @@ pub fn interpret(src: &str) {
         }
     };
 
-    let _hlir = naive_tc::typecheck(program);
+    let hlir = naive_tc::typecheck(program);
 
-    // let chunk = codegen_bytecode::emit(program);
+    let chunk = codegen_bytecode::emit(hlir);
 
-    // vm::Vm::new().execute(chunk);
+    vm::Vm::new().execute(chunk);
 }
 
 pub fn compile_to_c(src: &str) {

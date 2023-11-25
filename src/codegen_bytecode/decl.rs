@@ -1,4 +1,4 @@
-use crate::{codegen_bytecode::Generator, ir::ast::Decl};
+use crate::{codegen_bytecode::Generator, ir::hlir::Decl};
 
 impl Generator {
     pub fn decl(&mut self, decl: &Decl) {

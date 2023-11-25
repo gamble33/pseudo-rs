@@ -2,7 +2,7 @@
 #[allow(unused_variables)] mod expr;
 #[allow(unused_variables)] mod stmt;
 
-use crate::ir::ast::Decl;
+use crate::ir::hlir::Decl;
 use crate::vm::chunk::Chunk;
 
 struct Generator {

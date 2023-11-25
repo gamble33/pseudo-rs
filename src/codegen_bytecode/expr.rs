@@ -1,6 +1,7 @@
 use super::Generator;
 use crate::{
-    ir::ast::{ExprKind, LiteralKind},
+    ir::hlir::{Expr, ExprKind},
+    ir::ast::LiteralKind,
     lexer::token::TokenKind::*,
     vm::{instr::Instr, value::Value}
 };
@@ -12,8 +13,8 @@ impl Generator {
         self.target.instructions.push(Instr::Const(index));
     }
 
-    pub fn expr(&mut self, expr: &ExprKind) {
-        match expr {
+    pub fn expr(&mut self, expr: &Expr) {
+        match &expr.expr_kind {
             ExprKind::Binary { lhs, op, rhs } => {
                 self.expr(lhs);
                 self.expr(rhs);
@@ -32,7 +33,7 @@ impl Generator {
                 }
             },
             ExprKind::Unary { op, expr } => {
-                self.expr(expr);
+                self.expr(&expr);
                 match op.kind {
                     Minus => self.target.instructions.push(Instr::Neg),
                     _ => unreachable!()
