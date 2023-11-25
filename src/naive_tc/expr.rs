@@ -1,6 +1,7 @@
-use super::TypeChecker;
+use super::{TypeChecker, match_types};
 use crate::ir::ast::{ExprKind, LiteralKind};
-use crate::ir::hlir;
+use crate::ir::hlir::{self, Type};
+use crate::lexer::token::{KeywordKind, TokenKind};
 
 impl TypeChecker {
     pub fn expr(&mut self, expr: ExprKind) -> hlir::Expr {
@@ -21,7 +22,29 @@ impl TypeChecker {
                 }
             }
             ExprKind::Logical { lhs, op, rhs } => unimplemented!(),
-            ExprKind::Unary { op, expr } => unimplemented!(),
+            ExprKind::Unary { op, expr } => {
+                let expr = self.expr(*expr);
+                match op.kind {
+                    TokenKind::Keyword(KeywordKind::Not) => {
+                        if expr.pseudo_type != Type::Boolean {
+                            unimplemented!("Can only do NOT operation on booleans");
+                        }
+                    }
+                    TokenKind::Minus => {
+                        if !match_types(&expr.pseudo_type, &[Type::Real, Type::Integer]) {
+                            unimplemented!("Can only negate REALs & INTEGERs");
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+                hlir::Expr {
+                    pseudo_type: expr.pseudo_type,
+                    expr_kind: hlir::ExprKind::Unary {
+                        op,
+                        expr: Box::new(expr),
+                    },
+                }
+            }
             ExprKind::Assignment { target, value } => unimplemented!(),
             ExprKind::Literal(ref lit) => {
                 let pseudo_type = match lit {

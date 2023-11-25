@@ -7,7 +7,7 @@ impl Generator {
         match stmt {
             Stmt::Output(expr) => {
                 self.expr(expr);
-                self.target.instructions.push(Instr::Output);
+                self.target.instructions.push(Instr::Output(expr.pseudo_type));
             },
             Stmt::If { condition, then_branch, else_branch } => todo!(),
             Stmt::Expr(_) => todo!(),

@@ -16,3 +16,7 @@ pub fn typecheck(decls: Vec<ast::Decl>) -> Vec<hlir::Decl> {
     };
     decls.into_iter().map(|decl| tc.decl(decl)).collect()
 }
+
+pub fn match_types(pseudo_type: &hlir::Type, types: &[hlir::Type]) -> bool {
+    types.contains(pseudo_type)
+}

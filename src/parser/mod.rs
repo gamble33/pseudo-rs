@@ -69,6 +69,7 @@ impl<I> Parser<I>
         match self.tokens.peek() {
             Some(token) => {
                 let mut matched = false;
+                // todo: use slice.contains() method instead
                 for kind in kinds.iter() {
                     if &token.kind == kind {
                         matched = true;

@@ -1,7 +1,7 @@
+use crate::ir::ast::{ExprKind, LiteralKind};
 use crate::lexer::token::{KeywordKind, Token, TokenKind, TokenLiteralKind};
 use crate::parser::error::ParseResult;
 use crate::parser::Parser;
-use crate::ir::ast::{ExprKind, LiteralKind};
 
 impl<I> Parser<I>
 where
@@ -132,7 +132,7 @@ where
 
     fn unary(&mut self) -> ParseResult<ExprKind> {
         // todo: exhaust list of unary operators
-        if self.match_tokens(&[TokenKind::Minus]) {
+        if self.match_tokens(&[TokenKind::Minus, TokenKind::Keyword(KeywordKind::Not)]) {
             return Ok(ExprKind::Unary {
                 op: self.tokens.next().unwrap(),
                 expr: Box::new(self.unary()?),
@@ -149,7 +149,9 @@ where
             Some(t) => match &t.kind {
                 Literal(literal) => match literal {
                     TokenLiteralKind::Integer(i) => ExprKind::Literal(LiteralKind::Integer(*i)),
-                    TokenLiteralKind::Character(ch) => ExprKind::Literal(LiteralKind::Character(*ch)),
+                    TokenLiteralKind::Character(ch) => {
+                        ExprKind::Literal(LiteralKind::Character(*ch))
+                    }
                     TokenLiteralKind::Str(string) => {
                         ExprKind::Literal(LiteralKind::String(string.to_owned()))
                     }

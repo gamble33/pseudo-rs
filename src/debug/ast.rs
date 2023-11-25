@@ -143,6 +143,7 @@ fn print_operator(op: &Token) {
             Keyword(keyword) => match keyword {
                 pseudo_rs::lexer::token::KeywordKind::Or => "or",
                 pseudo_rs::lexer::token::KeywordKind::And => "and",
+                pseudo_rs::lexer::token::KeywordKind::Not => "not",
                 _ => unreachable!(),
             },
 
