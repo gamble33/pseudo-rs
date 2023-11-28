@@ -2,7 +2,7 @@ use crate::{ir::hlir::Stmt, vm::instr::Instr};
 
 use super::Generator;
 
-impl Generator {
+impl Generator<'_> {
     pub fn stmt(&mut self, stmt: &Stmt) {
         match stmt {
             Stmt::Output(expr) => {
@@ -10,7 +10,7 @@ impl Generator {
                 self.target.instructions.push(Instr::Output(expr.pseudo_type));
             },
             Stmt::If { condition, then_branch, else_branch } => todo!(),
-            Stmt::Expr(_) => todo!(),
+            Stmt::Expr(expr) => self.expr(expr),
             Stmt::Call { name, args } => todo!(),
             Stmt::Input(_) => todo!(),
             Stmt::Block(stmts) => {

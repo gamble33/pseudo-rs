@@ -1,4 +1,4 @@
-use pseudo_rs::{codegen_bytecode::emit, lexer::Lexer, naive_tc, parser, parser::Parser};
+use pseudo_rs::{codegen_bytecode::emit, lexer::Lexer, naive_tc, parser, parser::Parser, vm::Vm};
 
 pub fn print_bytecode(src: &str) {
     emit(naive_tc::typecheck(
@@ -9,7 +9,7 @@ pub fn print_bytecode(src: &str) {
                 std::process::exit(0);
             }
         },
-    ))
+    ), &mut Vm::new())
     .instructions
     .iter()
     .for_each(|instr| println!("{:?}", instr));

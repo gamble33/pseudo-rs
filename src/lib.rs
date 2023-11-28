@@ -6,7 +6,7 @@ pub mod lexer;
 pub mod naive_tc;
 pub mod parser;
 #[allow(dead_code)]
-mod vm;
+pub mod vm;
 
 use crate::codegen_c::generate;
 use crate::lexer::Lexer;
@@ -24,10 +24,9 @@ pub fn interpret(src: &str) {
     };
 
     let hlir = naive_tc::typecheck(program);
-
-    let chunk = codegen_bytecode::emit(hlir);
-
-    vm::Vm::new().execute(chunk);
+    let mut vm = vm::Vm::new();
+    let chunk = codegen_bytecode::emit(hlir, &mut vm);
+    vm.execute(chunk);
 }
 
 pub fn compile_to_c(src: &str) {

@@ -3,15 +3,14 @@ use crate::{
     ir::ast::LiteralKind,
     ir::hlir::{Expr, ExprKind},
     lexer::token::{KeywordKind, TokenKind::*},
-    vm::{instr::Instr, value::Value, obj::{Obj, ObjString, ObjKind}},
+    vm::{
+        instr::Instr,
+        obj::allocate_string,
+        value::Value,
+    },
 };
 
-impl Generator {
-    fn emit_constant(&mut self, value: Value) {
-        let index = self.target.add_constant(value);
-        self.target.instructions.push(Instr::Const(index));
-    }
-
+impl Generator<'_> {
     pub fn expr(&mut self, expr: &Expr) {
         match &expr.expr_kind {
             ExprKind::Binary { lhs, op, rhs } => {
@@ -50,20 +49,21 @@ impl Generator {
                 }
             }
             ExprKind::Literal(literal) => match literal {
-                LiteralKind::Integer(i) => self.emit_constant(Value { integer: *i }),
-                LiteralKind::Boolean(b) => self.target.instructions.push(match b {
-                    true => Instr::True,
-                    false => Instr::False,
-                }),
-                LiteralKind::String(string) => self.emit_constant(Value {
-                    obj: Box::into_raw(Box::new(ObjString {
-                        obj: Obj { kind: ObjKind::String },
-                        string: string.clone(),
-                    })) as *const Obj
-                }) ,
+                LiteralKind::Integer(i) => self.emit_constant(Value {integer: *i}),
+                LiteralKind::Boolean(b) => self.emit_constant(Value {boolean: *b}),
+                LiteralKind::String(string) => {
+                    let obj = allocate_string(self.vm, string.clone());
+                    self.emit_constant(Value {obj});
+                },
                 LiteralKind::Character(ch) => self.emit_constant(Value {char: *ch}),
             },
             _ => unimplemented!(),
         }
     }
+
+    fn emit_constant(&mut self, value: Value) {
+        let instr = Instr::Const(self.target.add_constant(value));
+        self.target.instructions.push(instr);
+    }
 }
+

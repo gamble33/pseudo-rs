@@ -8,7 +8,7 @@ impl TypeChecker {
             ast::Stmt::While { body, condition } => unimplemented!(),
             ast::Stmt::Call { name, args } => unimplemented!(),
             ast::Stmt::VarDecl { name, type_name } => unimplemented!(),
-            ast::Stmt::Expr(_) => unimplemented!(),
+            ast::Stmt::Expr(expr_kind) => hlir::Stmt::Expr(self.expr(expr_kind)),
             ast::Stmt::Output(expr_kind) => hlir::Stmt::Output(self.expr(expr_kind)),
             ast::Stmt::Input(_) => unimplemented!(),
             ast::Stmt::Block(stmts) => hlir::Stmt::Block(

@@ -3,14 +3,16 @@
 #[allow(unused_variables)] mod stmt;
 
 use crate::ir::hlir::Decl;
+use crate::vm::Vm;
 use crate::vm::chunk::Chunk;
 
-struct Generator {
+struct Generator<'a> {
     target: Chunk,
+    vm: &'a mut Vm
 }
 
-pub fn emit(program: Vec<Decl>) -> Chunk {
-    let mut generator = Generator { target: Chunk::new() };
+pub fn emit<'a>(program: Vec<Decl>, vm: &'a mut Vm) -> Chunk {
+    let mut generator = Generator { target: Chunk::new(), vm };
     generator.decl(&program[0]);
     generator.target
 }
