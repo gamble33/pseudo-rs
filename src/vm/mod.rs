@@ -13,21 +13,20 @@ use self::obj::Obj;
 
 pub struct Vm {
     stack: Vec<Value>,
-    objects: *const Obj,
+    objects: *mut Obj,
 }
 
 impl Vm {
     pub fn new() -> Self {
-        Self { stack: Vec::new(), objects: std::ptr::null() }
+        Self { stack: Vec::new(), objects: std::ptr::null_mut() }
     }
 
     pub fn free_objects(&self) {
         let mut obj = self.objects;
         while !obj.is_null() {
             unsafe {
-                use crate::vm::obj::ObjString;
                 let next = (*obj).next;
-                { let _free = Box::from_raw(obj as *mut ObjString); }
+                { let _free = Box::from_raw(obj); }
                 obj = next;
             }
         }
