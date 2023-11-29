@@ -278,7 +278,12 @@ impl<I> Parser<I>
 
     fn input(&mut self) -> ParseResult<Stmt> {
         self.tokens.next();
-        let holder = self.expr()?;
+        let holder = match self.expr()? {
+            ExprKind::Variable(name) => name,
+
+            // todo: Add token previous
+            _ => self.error(String::from("Cannot store input in that"), None)?,
+        };
         self.consume(
             TokenKind::NewLine,
             String::from("expected new line after expression."),

@@ -109,6 +109,15 @@ impl Vm {
                     self.stack[idx] = self.stack.last().unwrap().clone();
                 }
                 Ret => todo!(),
+                Input => {
+                    let mut input = String::new();
+                    match std::io::stdin().read_line(&mut input) {
+                        Ok(_) => (),
+                        Err(error) => println!("error reading user input: {error}"),
+                    };
+                    let input = allocate_string(self, input);
+                    self.stack.push(Value {obj: input});
+                },
                 Output(pseudo_type) => execute_for_type!(println!("{}", value), pseudo_type, value),
                 Concat => unsafe {
                     let b = as_rs_string!(self.stack.pop().unwrap().obj);

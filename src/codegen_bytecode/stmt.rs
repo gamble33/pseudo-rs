@@ -39,7 +39,12 @@ impl Generator<'_> {
                 self.target.instructions.push(Instr::Pop);
             },
             Stmt::Call { name, args } => todo!(),
-            Stmt::Input(_) => todo!(),
+            Stmt::Input(holder) => {
+                self.target.instructions.push(Instr::Input);
+                let var_idx = self.resolve_local(holder);
+                self.target.instructions.push(Instr::StoreLocal(var_idx));
+                self.target.instructions.push(Instr::Pop);
+            },
             Stmt::Block(stmts) => {
                 self.enter_scope();
                 stmts.iter().for_each(|stmt| self.stmt(stmt));

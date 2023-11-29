@@ -69,7 +69,7 @@ pub enum Stmt {
 
     Expr(Expr),
     Output(Expr),
-    Input(Expr),
+    Input(String),
     Block(Vec<Stmt>),
 }
 

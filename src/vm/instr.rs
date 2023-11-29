@@ -8,6 +8,7 @@ pub enum Instr {
     LoadLocal(usize),
     StoreLocal(usize),
     Ret,
+    Input,
     Output(Type),
     /// Concatenates two strings
     Concat,

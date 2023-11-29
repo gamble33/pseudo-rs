@@ -66,9 +66,10 @@ fn print_stmt(stmt: &Stmt, depth: u32) {
             print_type_name(type_name);
             println!();
         }
-        Stmt::Input(expr) => {
+        Stmt::Input(target) => {
             println!("input");
-            print_expr(expr, depth + 1);
+            print_depth(depth + 1);
+            print!("{}", target);
         }
         Stmt::Expr(expr) => {
             println!("expr stmt");

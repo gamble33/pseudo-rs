@@ -1,9 +1,9 @@
 PROCEDURE Main
-    DECLARE Age : INTEGER
-    Age <- 19
-    IF Age < 18 THEN
-        OUTPUT "Too young!"
-    ELSE
-        OUTPUT "Have a drink!"
-    ENDIF
+    DECLARE Input : STRING
+    OUTPUT "Enter your age: "
+    INPUT Input
+    OUTPUT "Really? You're that young..." & Input
+    OUTPUT "Enter your name: "
+    INPUT Input
+    OUTPUT "AHAHAHHA! What a trash name, " & Input
 ENDPROCEDURE
