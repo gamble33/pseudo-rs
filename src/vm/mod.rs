@@ -1,15 +1,15 @@
 pub mod chunk;
 pub mod instr;
-pub mod value;
 pub mod obj;
+pub mod value;
 
 use crate::{
     as_rs_string,
     ir::hlir::Type,
-    vm::{chunk::Chunk, instr::Instr::*, value::Value, obj::allocate_string},
+    vm::{chunk::Chunk, instr::Instr::*, obj::allocate_string, value::Value},
 };
 
-use self::obj::{Obj, free_object};
+use self::obj::{free_object, Obj};
 
 pub struct Vm {
     stack: Vec<Value>,
@@ -18,7 +18,10 @@ pub struct Vm {
 
 impl Vm {
     pub fn new() -> Self {
-        Self { stack: Vec::new(), objects: std::ptr::null_mut() }
+        Self {
+            stack: Vec::new(),
+            objects: std::ptr::null_mut(),
+        }
     }
 
     pub fn free_objects(&self) {
@@ -88,13 +91,16 @@ impl Vm {
             };
         }
 
-        for instr in chunk.instructions {
-            match instr {
+        let mut instr_idx = 0;
+        while instr_idx < chunk.instructions.len() {
+            match chunk.instructions[instr_idx] {
                 Const(index) => {
                     let value = chunk.constants.get(index).unwrap();
                     self.stack.push(*value);
                 }
-                Pop => { self.stack.pop(); },
+                Pop => {
+                    self.stack.pop();
+                }
                 LoadLocal(idx) => unsafe {
                     let value = self.stack.get_unchecked(idx);
                     self.stack.push(value.clone());
@@ -112,7 +118,7 @@ impl Vm {
                     result.push_str(b);
                     let result = allocate_string(self, result);
                     self.stack.push(Value { obj: result });
-                }
+                },
                 Add(pseudo_type) => binary_op!(+, pseudo_type),
                 Sub(pseudo_type) => binary_op!(-, pseudo_type),
                 Mul(pseudo_type) => binary_op!(*, pseudo_type),
@@ -149,8 +155,15 @@ impl Vm {
                 },
                 True => self.stack.push(Value { boolean: true }),
                 False => self.stack.push(Value { boolean: false }),
-                Null => self.stack.push(Value {integer: 0}),
+                Null => self.stack.push(Value { integer: 0 }),
+                JumpFalse(idx) => unsafe {
+                    if !self.stack.pop().unwrap().boolean {
+                        instr_idx = idx - 1;
+                    }
+                },
+                Jump(idx) => instr_idx = idx - 1,
             };
+            instr_idx += 1;
         }
         self.free_objects(); // todo: free objects for now after executing chunk. later, change
                              // this to deallocate objects when necessary.

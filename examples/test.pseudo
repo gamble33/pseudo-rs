@@ -1,9 +1,9 @@
 PROCEDURE Main
-    DECLARE A : INTEGER
-    DECLARE B : INTEGER
-    DECLARE Result : INTEGER
-    A <- B <- 35
-    4 <- 34
-    Result <- A + B
-    OUTPUT Result
+    DECLARE Age : INTEGER
+    Age <- 19
+    IF Age < 18 THEN
+        OUTPUT "Too young!"
+    ELSE
+        OUTPUT "Have a drink!"
+    ENDIF
 ENDPROCEDURE

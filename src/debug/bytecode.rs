@@ -12,5 +12,6 @@ pub fn print_bytecode(src: &str) {
     ), &mut Vm::new())
     .instructions
     .iter()
-    .for_each(|instr| println!("{:?}", instr));
+    .enumerate()
+    .for_each(|(idx, instr)| println!("{idx}\t{:?}", instr));
 }
