@@ -33,7 +33,7 @@ pub enum ExprKind {
         expr: Box<Expr>,
     },
     Assignment {
-        target: Box<Expr>,
+        target: String,
         value: Box<Expr>,
     },
     Literal(ast::LiteralKind),
@@ -65,7 +65,6 @@ pub enum Stmt {
 
     VarDecl {
         name: String,
-        pseudo_type: Type,
     },
 
     Expr(Expr),

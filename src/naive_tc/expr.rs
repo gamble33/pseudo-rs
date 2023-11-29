@@ -1,4 +1,4 @@
-use super::{TypeChecker, match_types};
+use super::{match_types, TypeChecker};
 use crate::ir::ast::{ExprKind, LiteralKind};
 use crate::ir::hlir::{self, Type};
 use crate::lexer::token::{KeywordKind, TokenKind};
@@ -16,10 +16,12 @@ impl TypeChecker {
                 let pseudo_type = match op.kind {
                     Greater | GreaterEqual | Less | LessEqual => {
                         if !match_types(&lhs.pseudo_type, &[Type::Real, Type::Integer]) {
-                            unimplemented!("Cannot do comparison of anything other than INTEGER or REAL");
+                            unimplemented!(
+                                "Cannot do comparison of anything other than INTEGER or REAL"
+                            );
                         }
                         Type::Boolean
-                    },
+                    }
                     Equal | NotEqual => Type::Boolean,
                     Ampersand => {
                         if lhs.pseudo_type != Type::String {
@@ -30,7 +32,7 @@ impl TypeChecker {
                     _ => lhs.pseudo_type,
                 };
                 hlir::Expr {
-                    pseudo_type: pseudo_type,
+                    pseudo_type,
                     expr_kind: hlir::ExprKind::Binary {
                         lhs: Box::new(lhs),
                         op,
@@ -62,7 +64,24 @@ impl TypeChecker {
                     },
                 }
             }
-            ExprKind::Assignment { target, value } => unimplemented!(),
+            ExprKind::Assignment { target, value } => {
+                let value = self.expr(*value);
+                let var_target = match self.get_var_mut(&target) {
+                    Some(var) => var,
+                    None => unimplemented!("Attempting to assign to an undeclared variable"),
+                };
+                if var_target.pseudo_type != value.pseudo_type {
+                    unimplemented!("Cannot assign type A to type B")
+                }
+                var_target.initialized = true;
+                hlir::Expr {
+                    pseudo_type: var_target.pseudo_type,
+                    expr_kind: hlir::ExprKind::Assignment {
+                        target,
+                        value: Box::new(value),
+                    },
+                }
+            }
             ExprKind::Literal(ref lit) => {
                 let pseudo_type = match lit {
                     LiteralKind::Integer(_) => hlir::Type::Integer,
@@ -75,7 +94,19 @@ impl TypeChecker {
                     expr_kind: hlir::ExprKind::Literal(lit.clone()),
                 }
             }
-            ExprKind::Variable(_) => unimplemented!(),
+            ExprKind::Variable(name) => {
+                let var = match self.get_var_mut(&name) {
+                    Some(var) => var,
+                    None => unimplemented!("variable `{}` not declated", name),
+                };
+                if !var.initialized {
+                    unimplemented!("use of uninitialized variable `{}`.", name);
+                }
+                hlir::Expr {
+                    pseudo_type: var.pseudo_type,
+                    expr_kind: hlir::ExprKind::Variable(name),
+                }
+            }
         }
     }
 }

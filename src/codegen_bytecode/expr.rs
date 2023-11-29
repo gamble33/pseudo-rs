@@ -57,6 +57,15 @@ impl Generator<'_> {
                 },
                 LiteralKind::Character(ch) => self.emit_constant(Value {char: *ch}),
             },
+            ExprKind::Variable(name) => {
+                let arg = self.resolve_local(name);
+                self.target.instructions.push(Instr::LoadLocal(arg));
+            },
+            ExprKind::Assignment { target, value } => {
+                self.expr(value);
+                let arg = self.resolve_local(target);
+                self.target.instructions.push(Instr::StoreLocal(arg));
+            }
             _ => unimplemented!(),
         }
     }

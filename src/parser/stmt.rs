@@ -454,7 +454,10 @@ impl<I> Parser<I>
                 body: Box::new(Stmt::Block(vec![
                     body,
                     Stmt::Expr(ExprKind::Assignment {
-                        target: Box::new(counter.clone()),
+                        target: match counter.clone() {
+                            ExprKind::Variable(name) => name,
+                            _ => self.error(String::from("invalid FOR loop increment variable."), None)?,
+                        },
                         value: Box::new(ExprKind::Binary {
                             lhs: Box::new(counter.clone()),
                             op: Token::new(TokenKind::Plus),

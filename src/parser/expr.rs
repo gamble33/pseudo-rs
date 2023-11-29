@@ -19,7 +19,10 @@ where
             // Note: This allows chained assignment syntax `a <- b <- c`.
             // Might need to change this...
             return Ok(ExprKind::Assignment {
-                target: Box::new(expr),
+                target: match expr {
+                    ExprKind::Variable(name) => name,
+                    _ => self.error(String::from("invalid assignment target"), None)?,
+                },
                 value: Box::new(self.expr()?),
             });
         }

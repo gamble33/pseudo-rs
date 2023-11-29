@@ -9,7 +9,7 @@ use crate::{
     vm::{chunk::Chunk, instr::Instr::*, value::Value, obj::allocate_string},
 };
 
-use self::obj::Obj;
+use self::obj::{Obj, free_object};
 
 pub struct Vm {
     stack: Vec<Value>,
@@ -26,7 +26,7 @@ impl Vm {
         while !obj.is_null() {
             unsafe {
                 let next = (*obj).next;
-                { let _free = Box::from_raw(obj); }
+                free_object(obj);
                 obj = next;
             }
         }
@@ -94,6 +94,14 @@ impl Vm {
                     let value = chunk.constants.get(index).unwrap();
                     self.stack.push(*value);
                 }
+                Pop => { self.stack.pop(); },
+                LoadLocal(idx) => unsafe {
+                    let value = self.stack.get_unchecked(idx);
+                    self.stack.push(value.clone());
+                },
+                StoreLocal(idx) => {
+                    self.stack[idx] = self.stack.last().unwrap().clone();
+                }
                 Ret => todo!(),
                 Output(pseudo_type) => execute_for_type!(println!("{}", value), pseudo_type, value),
                 Concat => unsafe {
@@ -141,6 +149,7 @@ impl Vm {
                 },
                 True => self.stack.push(Value { boolean: true }),
                 False => self.stack.push(Value { boolean: false }),
+                Null => self.stack.push(Value {integer: 0}),
             };
         }
         self.free_objects(); // todo: free objects for now after executing chunk. later, change

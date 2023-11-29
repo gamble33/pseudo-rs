@@ -44,7 +44,7 @@ impl Generator {
                 self.expr(expr);
             },
             ExprKind::Assignment { target, value } => {
-                self.expr(target);
+                self.target.push_str(target);
                 self.target.push_str("= ");
                 self.expr(value);
             },

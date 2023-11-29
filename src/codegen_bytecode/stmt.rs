@@ -10,15 +10,23 @@ impl Generator<'_> {
                 self.target.instructions.push(Instr::Output(expr.pseudo_type));
             },
             Stmt::If { condition, then_branch, else_branch } => todo!(),
-            Stmt::Expr(expr) => self.expr(expr),
+            Stmt::Expr(expr) => {
+                self.expr(expr);
+                self.target.instructions.push(Instr::Pop);
+            },
             Stmt::Call { name, args } => todo!(),
             Stmt::Input(_) => todo!(),
             Stmt::Block(stmts) => {
+                self.enter_scope();
                 stmts.iter().for_each(|stmt| self.stmt(stmt));
+                self.exit_scope();
             },
             Stmt::While { body, condition } => todo!(),
             Stmt::Repeat { body, until } => todo!(),
-            Stmt::VarDecl { name, pseudo_type } => todo!(),
+            Stmt::VarDecl { name } => {
+                self.target.instructions.push(Instr::Null);
+                self.add_local(name.clone());
+            },
         }
     }
 }

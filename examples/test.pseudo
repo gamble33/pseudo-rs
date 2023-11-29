@@ -1,3 +1,9 @@
 PROCEDURE Main
-    OUTPUT "A" & "B" & "C" & "D" & "E" & "F"
+    DECLARE A : INTEGER
+    DECLARE B : INTEGER
+    DECLARE Result : INTEGER
+    A <- B <- 35
+    4 <- 34
+    Result <- A + B
+    OUTPUT Result
 ENDPROCEDURE

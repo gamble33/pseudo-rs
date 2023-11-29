@@ -100,7 +100,8 @@ fn print_expr(expr: &ExprKind, depth: u32) {
         }
         ExprKind::Assignment { target, value } => {
             println!("x <- y");
-            print_expr(target, depth + 1);
+            print_depth(depth);
+            print!("{}", target);
             print_expr(value, depth + 1);
         }
         ExprKind::Variable(name) => {

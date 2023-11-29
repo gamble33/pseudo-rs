@@ -33,7 +33,7 @@ pub enum ExprKind {
         expr: Box<ExprKind>,
     },
     Assignment {
-        target: Box<ExprKind>,
+        target: String,
         value: Box<ExprKind>,
     },
     Literal(LiteralKind),

@@ -4,6 +4,9 @@ use crate::ir::hlir::Type;
 pub enum Instr {
     /// Push constant to the stack with an index of the value
     Const(usize),
+    Pop,
+    LoadLocal(usize),
+    StoreLocal(usize),
     Ret,
     Output(Type),
     /// Concatenates two strings
@@ -19,4 +22,5 @@ pub enum Instr {
     Not,
     True,
     False,
+    Null,
 }
