@@ -50,7 +50,16 @@ impl Generator<'_> {
                 stmts.iter().for_each(|stmt| self.stmt(stmt));
                 self.exit_scope();
             },
-            Stmt::While { body, condition } => todo!(),
+            Stmt::While { body, condition } => {
+                let loop_start_idx = self.target.instructions.len();
+                self.expr(condition);
+                let conditional_jmp_idx = self.target.instructions.len();
+                self.target.instructions.push(Instr::JumpFalse(0));
+                self.stmt(body);
+                self.target.instructions.push(Instr::Jump(loop_start_idx));
+                self.target.instructions[conditional_jmp_idx] = 
+                    Instr::JumpFalse(self.target.instructions.len());
+            },
             Stmt::Repeat { body, until } => todo!(),
             Stmt::VarDecl { name } => {
                 self.target.instructions.push(Instr::Null);

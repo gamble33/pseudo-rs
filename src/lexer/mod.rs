@@ -73,6 +73,8 @@ impl Iterator for Lexer<'_> {
                 None => Greater
             }
 
+            // todo: fix if new line isn't empty (contains space),
+            // then its registered as another newline.
             ch if is_newline(ch) => {
                 while match self.src.peek() {
                     Some(&c) if is_newline(c) => true,

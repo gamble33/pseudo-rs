@@ -25,7 +25,11 @@ impl TypeChecker {
                 }
             }
             ast::Stmt::Repeat { body, until } => unimplemented!(),
-            ast::Stmt::While { body, condition } => unimplemented!(),
+            ast::Stmt::While { body, condition } => {
+                let body = Box::new(self.stmt(*body));
+                let condition = self.expr(condition);
+                hlir::Stmt::While { body, condition }
+            },
             ast::Stmt::Call { name, args } => unimplemented!(),
             ast::Stmt::VarDecl { name, type_name } => {
                 let pseudo_type = self.pseudo_type(type_name);

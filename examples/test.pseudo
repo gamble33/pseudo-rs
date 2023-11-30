@@ -1,10 +1,15 @@
 PROCEDURE Main
-    DECLARE Age : INTEGER
-    Age <- 11
-    IF Age < 20 AND Age > 12 THEN
-        OUTPUT "You are a teen."
-    ELSE
-        OUTPUT "You are not a teen."
-    ENDIF
+    DECLARE Count : INTEGER
+    DECLARE I : INTEGER
+
+    Count <- 100
+    WHILE Count > 0
+        OUTPUT Count
+        Count <- Count - 1
+    ENDWHILE
+
+    FOR I <- 0 TO 100
+        OUTPUT I
+    NEXT I
 ENDPROCEDURE
 
