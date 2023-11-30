@@ -3,11 +3,7 @@ use crate::{
     ir::ast::LiteralKind,
     ir::hlir::{Expr, ExprKind},
     lexer::token::{KeywordKind, TokenKind::*},
-    vm::{
-        instr::Instr,
-        obj::allocate_string,
-        value::Value,
-    },
+    vm::{instr::Instr, obj::allocate_string, value::Value},
 };
 
 impl Generator<'_> {
@@ -49,24 +45,49 @@ impl Generator<'_> {
                 }
             }
             ExprKind::Literal(literal) => match literal {
-                LiteralKind::Integer(i) => self.emit_constant(Value {integer: *i}),
-                LiteralKind::Boolean(b) => self.emit_constant(Value {boolean: *b}),
+                LiteralKind::Integer(i) => self.emit_constant(Value { integer: *i }),
+                LiteralKind::Boolean(b) => self.emit_constant(Value { boolean: *b }),
                 LiteralKind::String(string) => {
                     let obj = allocate_string(self.vm, string.clone());
-                    self.emit_constant(Value {obj});
-                },
-                LiteralKind::Character(ch) => self.emit_constant(Value {char: *ch}),
+                    self.emit_constant(Value { obj });
+                }
+                LiteralKind::Character(ch) => self.emit_constant(Value { char: *ch }),
             },
             ExprKind::Variable(name) => {
                 let arg = self.resolve_local(name);
                 self.target.instructions.push(Instr::LoadLocal(arg));
-            },
+            }
             ExprKind::Assignment { target, value } => {
                 self.expr(value);
                 let arg = self.resolve_local(target);
                 self.target.instructions.push(Instr::StoreLocal(arg));
             }
-            _ => unimplemented!(),
+            ExprKind::Logical { lhs, op, rhs } => {
+                self.expr(lhs);
+
+                match &op.kind {
+                    Keyword(keyword) => match keyword {
+                        KeywordKind::Or => {
+                            let jmp_idx = self.target.instructions.len();
+                            self.target.instructions.push(Instr::JumpTrue(0));
+                            self.target.instructions.push(Instr::Pop);
+                            self.expr(rhs);
+                            self.target.instructions[jmp_idx] =
+                                Instr::JumpTrue(self.target.instructions.len());
+                        },
+                        KeywordKind::And => {
+                            let jmp_idx = self.target.instructions.len();
+                            self.target.instructions.push(Instr::JumpFalse(0));
+                            self.target.instructions.push(Instr::Pop);
+                            self.expr(rhs);
+                            self.target.instructions[jmp_idx] =
+                                Instr::JumpFalse(self.target.instructions.len());
+                        }
+                        _ => unreachable!(),
+                    },
+                    _ => unreachable!(),
+                }
+            }
         }
     }
 
@@ -75,4 +96,3 @@ impl Generator<'_> {
         self.target.instructions.push(instr);
     }
 }
-

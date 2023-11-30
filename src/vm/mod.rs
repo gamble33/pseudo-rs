@@ -115,6 +115,7 @@ impl Vm {
                         Ok(_) => (),
                         Err(error) => println!("error reading user input: {error}"),
                     };
+                    input = String::from(input.trim_end());
                     let input = allocate_string(self, input);
                     self.stack.push(Value {obj: input});
                 },
@@ -167,6 +168,11 @@ impl Vm {
                 Null => self.stack.push(Value { integer: 0 }),
                 JumpFalse(idx) => unsafe {
                     if !self.stack.pop().unwrap().boolean {
+                        instr_idx = idx - 1;
+                    }
+                },
+                JumpTrue(idx) => unsafe {
+                    if self.stack.pop().unwrap().boolean {
                         instr_idx = idx - 1;
                     }
                 },

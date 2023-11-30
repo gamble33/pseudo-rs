@@ -25,5 +25,6 @@ pub enum Instr {
     False,
     Null,
     JumpFalse(usize),
+    JumpTrue(usize),
     Jump(usize),
 }

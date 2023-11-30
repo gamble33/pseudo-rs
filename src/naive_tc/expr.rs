@@ -40,7 +40,23 @@ impl TypeChecker {
                     },
                 }
             }
-            ExprKind::Logical { lhs, op, rhs } => unimplemented!(),
+            ExprKind::Logical { lhs, op, rhs } => {
+                let lhs = self.expr(*lhs);
+                let rhs = self.expr(*rhs);
+                if lhs.pseudo_type != Type::Boolean || rhs.pseudo_type != Type::Boolean {
+                    unimplemented!(
+                        "Logical comparison must be done on expressions of BOOLEAN type."
+                    );
+                }
+                hlir::Expr {
+                    pseudo_type: Type::Boolean,
+                    expr_kind: hlir::ExprKind::Logical {
+                        lhs: Box::new(lhs),
+                        op,
+                        rhs: Box::new(rhs),
+                    },
+                }
+            }
             ExprKind::Unary { op, expr } => {
                 let expr = self.expr(*expr);
                 match op.kind {
