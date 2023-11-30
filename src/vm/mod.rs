@@ -143,7 +143,11 @@ impl Vm {
                         Type::Real => a.real == b.real,
                         Type::Char => a.char == b.char,
                         Type::Boolean => a.boolean == b.boolean,
-                        Type::String => todo!(),
+                        Type::String => {
+                            let a = as_rs_string!(a.obj);
+                            let b = as_rs_string!(b.obj);
+                            a == b
+                        },
                     };
                     self.stack.push(Value { boolean: equality });
                 },

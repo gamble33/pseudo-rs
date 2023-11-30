@@ -1,15 +1,9 @@
 PROCEDURE Main
-    DECLARE Count : INTEGER
-    DECLARE I : INTEGER
-
-    Count <- 100
-    WHILE Count > 0
-        OUTPUT Count
-        Count <- Count - 1
-    ENDWHILE
-
-    FOR I <- 0 TO 100
-        OUTPUT I
-    NEXT I
+    DECLARE Input : STRING 
+    INPUT Input
+    IF Input = "ABC" THEN
+        OUTPUT "STRINGS MATCHED!"
+    ELSE
+        OUTPUT "NO MATCH."
+    ENDIF
 ENDPROCEDURE
-
