@@ -171,12 +171,12 @@ impl Vm {
                 False => self.stack.push(Value { boolean: false }),
                 Null => self.stack.push(Value { integer: 0 }),
                 JumpFalse(idx) => unsafe {
-                    if !self.stack.pop().unwrap().boolean {
+                    if !self.stack.last().unwrap().boolean {
                         instr_idx = idx - 1;
                     }
                 },
                 JumpTrue(idx) => unsafe {
-                    if self.stack.pop().unwrap().boolean {
+                    if self.stack.last().unwrap().boolean {
                         instr_idx = idx - 1;
                     }
                 },

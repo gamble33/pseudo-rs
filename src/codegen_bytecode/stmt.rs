@@ -15,6 +15,7 @@ impl Generator<'_> {
                 let jmp_false_idx = self.target.instructions.len();
                 self.target.instructions.push(Instr::JumpFalse(0));
 
+                self.target.instructions.push(Instr::Pop);
                 self.stmt(then_branch);
                 
                 let jmp_else_idx = self.target.instructions.len();
@@ -55,12 +56,27 @@ impl Generator<'_> {
                 self.expr(condition);
                 let conditional_jmp_idx = self.target.instructions.len();
                 self.target.instructions.push(Instr::JumpFalse(0));
+                self.target.instructions.push(Instr::Pop);
                 self.stmt(body);
                 self.target.instructions.push(Instr::Jump(loop_start_idx));
                 self.target.instructions[conditional_jmp_idx] = 
                     Instr::JumpFalse(self.target.instructions.len());
             },
-            Stmt::Repeat { body, until } => todo!(),
+            Stmt::Repeat { body, until } => {
+                // Skip pop instruction on first iteration.
+                let jmp_idx = self.target.instructions.len();
+                self.target.instructions.push(Instr::Jump(0));
+
+                let loop_start_idx = self.target.instructions.len();
+                self.target.instructions.push(Instr::Pop);
+
+                self.target.instructions[jmp_idx] =
+                    Instr::Jump(self.target.instructions.len());
+
+                self.stmt(body);
+                self.expr(until);
+                self.target.instructions.push(Instr::JumpFalse(loop_start_idx));
+            },
             Stmt::VarDecl { name } => {
                 self.target.instructions.push(Instr::Null);
                 self.add_local(name.clone());

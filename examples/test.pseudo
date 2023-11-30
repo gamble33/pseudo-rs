@@ -1,9 +1,10 @@
 PROCEDURE Main
     DECLARE Input : STRING 
-    INPUT Input
-    IF Input = "ABC" THEN
-        OUTPUT "STRINGS MATCHED!"
-    ELSE
-        OUTPUT "NO MATCH."
-    ENDIF
+
+    REPEAT
+        OUTPUT "What's your name?"
+        INPUT Input
+    UNTIL Input = "Bob"
+
+    OUTPUT "Hey, Bob!"
 ENDPROCEDURE

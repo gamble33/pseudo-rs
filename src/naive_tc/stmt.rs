@@ -24,7 +24,11 @@ impl TypeChecker {
                     },
                 }
             }
-            ast::Stmt::Repeat { body, until } => unimplemented!(),
+            ast::Stmt::Repeat { body, until } => {
+                let body = Box::new(self.stmt(*body));
+                let until = self.expr(until);
+                hlir::Stmt::Repeat { body, until }
+            },
             ast::Stmt::While { body, condition } => {
                 let body = Box::new(self.stmt(*body));
                 let condition = self.expr(condition);
