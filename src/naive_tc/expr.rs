@@ -125,6 +125,7 @@ impl TypeChecker {
             ast::ExprKind::Literal(ref lit) => {
                 let pseudo_type = match lit {
                     LiteralKind::Integer(_) => hlir::Type::Integer,
+                    LiteralKind::Real(_) => hlir::Type::Real,
                     LiteralKind::Character(_) => hlir::Type::Char,
                     LiteralKind::String(_) => hlir::Type::String,
                     LiteralKind::Boolean(_) => hlir::Type::Boolean,

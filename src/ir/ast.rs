@@ -46,7 +46,8 @@ pub enum ExprKind {
 
 #[derive(Debug, Clone)]
 pub enum LiteralKind {
-    Integer(i32),
+    Integer(i64),
+    Real(f64),
     Character(char),
     String(String),
     Boolean(bool),

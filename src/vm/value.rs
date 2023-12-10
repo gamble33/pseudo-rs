@@ -2,7 +2,7 @@ use super::obj::Obj;
 
 #[derive(Clone, Copy)]
 pub union Value {
-    pub integer: i32,
+    pub integer: i64,
     pub real: f64,
     pub boolean: bool,
     pub char: char,

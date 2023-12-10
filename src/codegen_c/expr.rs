@@ -51,6 +51,7 @@ impl Generator {
             ExprKind::Call { .. } => unimplemented!(),
             ExprKind::Literal(literal) => match literal {
                 LiteralKind::Integer(i) => self.target.push_str(&format!("{} ", i.to_string())),
+                LiteralKind::Real(_) => unimplemented!(),
                 LiteralKind::Character(ch) => self.target.push_str(&format!("(char)'{}'", *ch)),
                 LiteralKind::String(_) => todo!(),
                 LiteralKind::Boolean(boolean) => {

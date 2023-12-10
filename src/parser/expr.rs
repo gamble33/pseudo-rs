@@ -176,6 +176,7 @@ where
             Some(t) => match &t.kind {
                 Literal(literal) => match literal {
                     TokenLiteralKind::Integer(i) => ExprKind::Literal(LiteralKind::Integer(*i)),
+                    TokenLiteralKind::Real(f) => ExprKind::Literal(LiteralKind::Real(*f)),
                     TokenLiteralKind::Character(ch) => {
                         ExprKind::Literal(LiteralKind::Character(*ch))
                     }

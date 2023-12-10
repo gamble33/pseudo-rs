@@ -47,7 +47,8 @@ pub enum TokenKind {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenLiteralKind {
-    Integer(i32),
+    Integer(i64),
+    Real(f64),
     Character(char),
     Str(String),
 }

@@ -130,6 +130,7 @@ fn print_expr(expr: &ExprKind, depth: u32) {
         }
         ExprKind::Literal(literal) => match literal {
             LiteralKind::Integer(i) => println!("{}", i),
+            LiteralKind::Real(f) => println!("{}", f),
             LiteralKind::Character(ch) => println!("'{}'", ch),
             LiteralKind::String(string) => println!("\"{}\"", string),
             LiteralKind::Boolean(b) => println!("{}", b),

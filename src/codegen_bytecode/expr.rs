@@ -46,6 +46,7 @@ impl Generator<'_> {
             }
             ExprKind::Literal(literal) => match literal {
                 LiteralKind::Integer(i) => self.emit_constant(Value { integer: *i }),
+                LiteralKind::Real(f) => self.emit_constant(Value { real: *f }),
                 LiteralKind::Boolean(b) => self.emit_constant(Value { boolean: *b }),
                 LiteralKind::String(string) => {
                     let obj = allocate_string(self.vm, string.clone());

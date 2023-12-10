@@ -1,38 +1,38 @@
 PROCEDURE Main
     OUTPUT "Printing all prime numbers up to 1000"
 
-    DECLARE Counter : INTEGER
-    Counter <- 2
-    WHILE Counter <= 1000
+    DECLARE Counter : REAL
+    Counter <- 2.0
+    WHILE Counter <= 1000.0
         IF IsPrime(Counter) THEN
             OUTPUT Counter
         ENDIF
-        Counter <- Counter + 1
+        Counter <- Counter + 1.0
     ENDWHILE
 ENDPROCEDURE
 
 
-FUNCTION IsPrime(Number : INTEGER) RETURNS BOOLEAN
-    DECLARE Counter : INTEGER
-    Counter <- 2
+FUNCTION IsPrime(Number : REAL) RETURNS BOOLEAN
+    DECLARE Counter : REAL
+    Counter <- 2.0
     WHILE Counter < Number
         IF CheckDivisible(Number, Counter) THEN
             RETURN FALSE
         ENDIF
-        Counter <- Counter + 1
+        Counter <- Counter + 1.0
     ENDWHILE
     RETURN TRUE
 ENDFUNCTION
 
 
-FUNCTION CheckDivisible(Number : INTEGER, Divisor : INTEGER) RETURNS BOOLEAN
-    DECLARE Counter : INTEGER
+FUNCTION CheckDivisible(Number : REAL, Divisor : REAL) RETURNS BOOLEAN
+    DECLARE Counter : REAL
 
     IF Divisor > Number THEN
         RETURN FALSE
     ENDIF
 
-    Counter <- 0
+    Counter <- 0.0
     WHILE Counter < Number
         Counter <- Counter + Divisor
     ENDWHILE
