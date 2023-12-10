@@ -18,7 +18,7 @@ impl Generator<'_> {
             .last()
             .is_some_and(|local| local.depth > self.scope_depth)
         {
-            self.target.instructions.push(Instr::Pop);
+            self.emit(Instr::Pop);
             self.locals.pop();
         }
     }

@@ -10,13 +10,13 @@ pub enum Type {
     String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Expr {
     pub pseudo_type: Type,
     pub expr_kind: ExprKind,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExprKind {
     Binary {
         lhs: Box<Expr>,
@@ -40,7 +40,7 @@ pub enum ExprKind {
     Variable(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Stmt {
     If {
         condition: Expr,
@@ -73,7 +73,7 @@ pub enum Stmt {
     Block(Vec<Stmt>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Decl {
     Procedure {
         name: String,
@@ -82,7 +82,7 @@ pub enum Decl {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Param {
     pub name: String,
     pub pseudo_type: Type,

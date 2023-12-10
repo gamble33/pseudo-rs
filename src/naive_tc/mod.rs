@@ -1,22 +1,39 @@
 mod decl;
-mod stmt;
 mod expr;
+mod stmt;
 mod types;
 mod var;
 
-use self::var::Variable;
-use crate::ir::{hlir, ast};
+use self::{
+    decl::{define_decl, Callable},
+    var::Variable,
+};
+use crate::ir::{ast, hlir};
 use std::collections::HashMap;
 
 struct TypeChecker {
     symbol_table_stack: Vec<HashMap<String, Variable>>,
+    callable_table: HashMap<String, Callable>,
 }
 
 pub fn typecheck(decls: Vec<ast::Decl>) -> Vec<hlir::Decl> {
+    // First pass, declare all PROCEDUREs/FUNCTIONs
+    let mut callable_table = HashMap::new();
+    // todo: Don't clone the entire AST
+    for decl in decls.clone().into_iter() {
+        define_decl(decl, &mut callable_table);
+    }
+
     let mut tc = TypeChecker {
         symbol_table_stack: vec![HashMap::new()],
+        callable_table,
     };
-    decls.into_iter().map(|decl| tc.decl(decl)).collect()
+
+    let mut hlir_decls = Vec::new();
+    for decl in decls.into_iter() {
+        hlir_decls.push(tc.decl(decl));
+    }
+    hlir_decls
 }
 
 pub fn match_types(pseudo_type: &hlir::Type, types: &[hlir::Type]) -> bool {

@@ -1,11 +1,11 @@
 use crate::lexer::token::Token;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TypeName {
     BaseTypeName(BaseTypeName),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BaseTypeName {
     Integer,
     Real,
@@ -49,7 +49,7 @@ pub enum LiteralKind {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Decl {
     Procedure {
         name: String,
@@ -58,7 +58,7 @@ pub enum Decl {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Stmt {
     If {
         condition: ExprKind,
@@ -92,14 +92,15 @@ pub enum Stmt {
     Block(Vec<Stmt>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Param {
     pub name: String,
     pub type_name: TypeName,
     pub passing_mode: Option<PassingMode>,
+
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum PassingMode {
     ByVal,
     ByRef,

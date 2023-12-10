@@ -25,8 +25,8 @@ pub fn interpret(src: &str) {
 
     let hlir = naive_tc::typecheck(program);
     let mut vm = vm::Vm::new();
-    let chunk = codegen_bytecode::emit(hlir, &mut vm);
-    vm.execute(chunk);
+    let script = codegen_bytecode::emit(hlir, &mut vm);
+    vm.execute(script);
 }
 
 pub fn compile_to_c(src: &str) {

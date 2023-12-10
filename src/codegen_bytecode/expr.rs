@@ -10,28 +10,28 @@ impl Generator<'_> {
     pub fn expr(&mut self, expr: &Expr) {
         match &expr.expr_kind {
             ExprKind::Binary { lhs, op, rhs } => {
-                self.expr(lhs);
-                self.expr(rhs);
+                self.expr(&lhs);
+                self.expr(&rhs);
                 match op.kind {
-                    Ampersand => self.target.instructions.push(Instr::Concat),
-                    Plus => self.target.instructions.push(Instr::Add(lhs.pseudo_type)),
-                    Minus => self.target.instructions.push(Instr::Sub(lhs.pseudo_type)),
-                    Star => self.target.instructions.push(Instr::Mul(lhs.pseudo_type)),
-                    Slash => self.target.instructions.push(Instr::Div(lhs.pseudo_type)),
-                    Greater => self.target.instructions.push(Instr::Gt(lhs.pseudo_type)),
-                    GreaterEqual => self.target.instructions.push(Instr::GtEq(lhs.pseudo_type)),
+                    Ampersand => self.emit(Instr::Concat),
+                    Plus => self.emit(Instr::Add(lhs.pseudo_type)),
+                    Minus => self.emit(Instr::Sub(lhs.pseudo_type)),
+                    Star => self.emit(Instr::Mul(lhs.pseudo_type)),
+                    Slash => self.emit(Instr::Div(lhs.pseudo_type)),
+                    Greater => self.emit(Instr::Gt(lhs.pseudo_type)),
+                    GreaterEqual => self.emit(Instr::GtEq(lhs.pseudo_type)),
                     Less => {
-                        self.target.instructions.push(Instr::GtEq(lhs.pseudo_type));
-                        self.target.instructions.push(Instr::Not);
+                        self.emit(Instr::GtEq(lhs.pseudo_type));
+                        self.emit(Instr::Not);
                     }
                     LessEqual => {
-                        self.target.instructions.push(Instr::Gt(lhs.pseudo_type));
-                        self.target.instructions.push(Instr::Not);
+                        self.emit(Instr::Gt(lhs.pseudo_type));
+                        self.emit(Instr::Not);
                     }
-                    Equal => self.target.instructions.push(Instr::Eq(lhs.pseudo_type)),
+                    Equal => self.emit(Instr::Eq(lhs.pseudo_type)),
                     NotEqual => {
-                        self.target.instructions.push(Instr::Eq(lhs.pseudo_type));
-                        self.target.instructions.push(Instr::Not);
+                        self.emit(Instr::Eq(lhs.pseudo_type));
+                        self.emit(Instr::Not);
                     }
                     _ => unreachable!(),
                 }
@@ -39,8 +39,8 @@ impl Generator<'_> {
             ExprKind::Unary { op, expr } => {
                 self.expr(&expr);
                 match op.kind {
-                    Minus => self.target.instructions.push(Instr::Neg(expr.pseudo_type)),
-                    Keyword(KeywordKind::Not) => self.target.instructions.push(Instr::Not),
+                    Minus => self.emit(Instr::Neg(expr.pseudo_type)),
+                    Keyword(KeywordKind::Not) => self.emit(Instr::Not),
                     _ => unreachable!(),
                 }
             }
@@ -55,33 +55,33 @@ impl Generator<'_> {
             },
             ExprKind::Variable(name) => {
                 let arg = self.resolve_local(name);
-                self.target.instructions.push(Instr::LoadLocal(arg));
+                self.emit(Instr::LoadLocal(arg));
             }
             ExprKind::Assignment { target, value } => {
-                self.expr(value);
+                self.expr(&value);
                 let arg = self.resolve_local(target);
-                self.target.instructions.push(Instr::StoreLocal(arg));
+                self.emit(Instr::StoreLocal(arg));
             }
             ExprKind::Logical { lhs, op, rhs } => {
-                self.expr(lhs);
+                self.expr(&lhs);
 
                 match &op.kind {
                     Keyword(keyword) => match keyword {
                         KeywordKind::Or => {
-                            let jmp_idx = self.target.instructions.len();
-                            self.target.instructions.push(Instr::JumpTrue(0));
-                            self.target.instructions.push(Instr::Pop);
-                            self.expr(rhs);
-                            self.target.instructions[jmp_idx] =
-                                Instr::JumpTrue(self.target.instructions.len());
+                            let jmp_idx = self.target().instructions.len();
+                            self.emit(Instr::JumpTrue(0));
+                            self.emit(Instr::Pop);
+                            self.expr(&rhs);
+                            self.target().instructions[jmp_idx] =
+                                Instr::JumpTrue(self.target().instructions.len());
                         },
                         KeywordKind::And => {
-                            let jmp_idx = self.target.instructions.len();
-                            self.target.instructions.push(Instr::JumpFalse(0));
-                            self.target.instructions.push(Instr::Pop);
-                            self.expr(rhs);
-                            self.target.instructions[jmp_idx] =
-                                Instr::JumpFalse(self.target.instructions.len());
+                            let jmp_idx = self.target().instructions.len();
+                            self.emit(Instr::JumpFalse(0));
+                            self.emit(Instr::Pop);
+                            self.expr(&rhs);
+                            self.target().instructions[jmp_idx] =
+                                Instr::JumpFalse(self.target().instructions.len());
                         }
                         _ => unreachable!(),
                     },
@@ -89,10 +89,5 @@ impl Generator<'_> {
                 }
             }
         }
-    }
-
-    fn emit_constant(&mut self, value: Value) {
-        let instr = Instr::Const(self.target.add_constant(value));
-        self.target.instructions.push(instr);
     }
 }

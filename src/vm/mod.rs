@@ -3,16 +3,28 @@ pub mod instr;
 pub mod obj;
 pub mod value;
 
+use self::{
+    chunk::Chunk,
+    obj::{free_object, Obj, ObjFn},
+};
 use crate::{
     as_rs_string,
     ir::hlir::Type,
-    vm::{chunk::Chunk, instr::Instr::*, obj::allocate_string, value::Value},
+    vm::{
+        instr::Instr::*,
+        obj::{allocate_string, store_function},
+        value::Value,
+    },
 };
 
-use self::obj::{free_object, Obj};
+struct CallFrame {
+    function: *mut ObjFn,
+    ret_instr_idx: usize,
+}
 
 pub struct Vm {
     stack: Vec<Value>,
+    frames: Vec<CallFrame>,
     objects: *mut Obj,
 }
 
@@ -20,6 +32,7 @@ impl Vm {
     pub fn new() -> Self {
         Self {
             stack: Vec::new(),
+            frames: Vec::new(),
             objects: std::ptr::null_mut(),
         }
     }
@@ -35,7 +48,7 @@ impl Vm {
         }
     }
 
-    pub fn execute(&mut self, chunk: Chunk) {
+    pub fn execute(&mut self, script: ObjFn) {
         macro_rules! execute_for_type {
             ($expr:expr, $type:expr, $($ident:ident),*) => {
                 unsafe {
@@ -91,11 +104,18 @@ impl Vm {
             };
         }
 
+        let script = store_function(self, script);
+        self.frames.push(CallFrame {
+            function: script as *mut ObjFn,
+            ret_instr_idx: 0,
+        });
+
         let mut instr_idx = 0;
-        while instr_idx < chunk.instructions.len() {
-            match chunk.instructions[instr_idx] {
+        while instr_idx < self.get_current_chunk().instructions.len() {
+            let mut instr_inc = 1;
+            match self.get_current_chunk().instructions[instr_idx] {
                 Const(index) => {
-                    let value = chunk.constants.get(index).unwrap();
+                    let value = self.get_current_chunk().constants.get(index).unwrap();
                     self.stack.push(*value);
                 }
                 Pop => {
@@ -108,7 +128,23 @@ impl Vm {
                 StoreLocal(idx) => {
                     self.stack[idx] = self.stack.last().unwrap().clone();
                 }
-                Ret => todo!(),
+                Call => unsafe {
+                    // todo: find function based on params
+                    let function = self.stack.last().unwrap().obj as *mut ObjFn;
+
+                    self.frames.push(CallFrame {
+                        function,
+                        ret_instr_idx: instr_idx,
+                    });
+                    instr_idx = 0;
+                    instr_inc = 0;
+                },
+                Ret => {
+                    // todo: pop args as well
+                    self.stack.pop();
+                    let call_frame = self.frames.pop().unwrap();
+                    instr_idx = call_frame.ret_instr_idx;
+                }
                 Input => {
                     let mut input = String::new();
                     match std::io::stdin().read_line(&mut input) {
@@ -117,8 +153,8 @@ impl Vm {
                     };
                     input = String::from(input.trim_end());
                     let input = allocate_string(self, input);
-                    self.stack.push(Value {obj: input});
-                },
+                    self.stack.push(Value { obj: input });
+                }
                 Output(pseudo_type) => execute_for_type!(println!("{}", value), pseudo_type, value),
                 Concat => unsafe {
                     let b = as_rs_string!(self.stack.pop().unwrap().obj);
@@ -147,7 +183,7 @@ impl Vm {
                             let a = as_rs_string!(a.obj);
                             let b = as_rs_string!(b.obj);
                             a == b
-                        },
+                        }
                     };
                     self.stack.push(Value { boolean: equality });
                 },
@@ -182,9 +218,13 @@ impl Vm {
                 },
                 Jump(idx) => instr_idx = idx - 1,
             };
-            instr_idx += 1;
+            instr_idx += instr_inc;
         }
         self.free_objects(); // todo: free objects for now after executing chunk. later, change
                              // this to deallocate objects when necessary.
+    }
+
+    fn get_current_chunk(&self) -> &Chunk {
+        unsafe { &(*self.frames.last().unwrap().function).chunk }
     }
 }

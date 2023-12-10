@@ -7,6 +7,7 @@ pub enum Instr {
     Pop,
     LoadLocal(usize),
     StoreLocal(usize),
+    Call,
     Ret,
     Input,
     Output(Type),

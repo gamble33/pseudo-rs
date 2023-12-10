@@ -1,3 +1,4 @@
+use super::types::pseudo_type;
 use crate::{
     ir::{ast, hlir},
     naive_tc::TypeChecker,
@@ -28,15 +29,28 @@ impl TypeChecker {
                 let body = Box::new(self.stmt(*body));
                 let until = self.expr(until);
                 hlir::Stmt::Repeat { body, until }
-            },
+            }
             ast::Stmt::While { body, condition } => {
                 let body = Box::new(self.stmt(*body));
                 let condition = self.expr(condition);
                 hlir::Stmt::While { body, condition }
-            },
-            ast::Stmt::Call { name, args } => unimplemented!(),
+            }
+            ast::Stmt::Call { name, args } => {
+                if !self.check_decl_exists(&name) {
+                    unimplemented!("CALL to undefined PROCEDURE `{}`.", name);
+                }
+                let args: Vec<hlir::Expr> = args.into_iter().map(|arg| self.expr(arg)).collect();
+                if let Some(procedure) = self.callable_table.get(&name) {
+                    for (param, arg) in procedure.params.iter().zip(args.iter()) {
+                        if param.pseudo_type != arg.pseudo_type {
+                            unimplemented!("wrong Type of argument");
+                        }
+                    }
+                }
+                hlir::Stmt::Call { name, args }
+            }
             ast::Stmt::VarDecl { name, type_name } => {
-                let pseudo_type = self.pseudo_type(type_name);
+                let pseudo_type = pseudo_type(&type_name);
                 self.decl_var(name.clone(), pseudo_type);
                 hlir::Stmt::VarDecl { name }
             }
@@ -49,7 +63,7 @@ impl TypeChecker {
                 };
                 var.initialized = true;
                 hlir::Stmt::Input(holder)
-            },
+            }
             ast::Stmt::Block(stmts) => {
                 self.enter_scope();
                 let block =
