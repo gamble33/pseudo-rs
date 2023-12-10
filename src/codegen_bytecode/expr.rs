@@ -54,13 +54,19 @@ impl Generator<'_> {
                 LiteralKind::Character(ch) => self.emit_constant(Value { char: *ch }),
             },
             ExprKind::Variable(name) => {
-                let arg = self.resolve_local(name);
-                self.emit(Instr::LoadLocal(arg));
+                if let Some(arg) = self.resolve_local(name) {
+                    self.emit(Instr::LoadLocal(arg));
+                } else {
+                    self.emit(Instr::LoadGlobal(self.resolve_global(name)));
+                }
             }
             ExprKind::Assignment { target, value } => {
                 self.expr(&value);
-                let arg = self.resolve_local(target);
-                self.emit(Instr::StoreLocal(arg));
+                if let Some(arg) = self.resolve_local(target) {
+                    self.emit(Instr::StoreLocal(arg));
+                } else {
+                    self.emit(Instr::StoreGlobal(self.resolve_global(target)));
+                }
             }
             ExprKind::Logical { lhs, op, rhs } => {
                 self.expr(&lhs);

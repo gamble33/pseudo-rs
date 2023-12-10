@@ -30,7 +30,7 @@ impl Generator<'_> {
         });
     }
 
-    pub fn resolve_local(&mut self, name: &str) -> usize {
+    pub fn resolve_local(&mut self, name: &str) -> Option<usize> {
         self.locals
             .iter()
             .enumerate()
@@ -41,6 +41,6 @@ impl Generator<'_> {
                 } else {
                     None
                 }
-            }).unwrap()
+            })
     }
 }

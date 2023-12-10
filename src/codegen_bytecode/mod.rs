@@ -1,7 +1,10 @@
-#[allow(unused_variables)] mod decl;
-#[allow(unused_variables)] mod expr;
-#[allow(unused_variables)] mod stmt;
+mod decl;
+mod expr;
+mod stmt;
 mod local;
+mod global;
+
+use std::collections::HashMap;
 
 use self::local::Local;
 use crate::ir::hlir::Decl;
@@ -16,6 +19,7 @@ struct Generator<'a> {
     vm: &'a mut Vm,
     scope_depth: u8,
     locals: Vec<Local>,
+    globals: HashMap<String, usize>,
 }
 
 pub fn emit<'a>(program: Vec<Decl>, vm: &'a mut Vm) -> ObjFn {
@@ -30,6 +34,7 @@ pub fn emit<'a>(program: Vec<Decl>, vm: &'a mut Vm) -> ObjFn {
         vm,
         scope_depth: 0,
         locals: Vec::new(),
+        globals: HashMap::new(),
     };
 
     // decalre each declaration
@@ -39,11 +44,12 @@ pub fn emit<'a>(program: Vec<Decl>, vm: &'a mut Vm) -> ObjFn {
     program.iter().for_each(|decl| generator.decl(decl)); 
 
     // Call main procedure at top-level script.
-    let main_procedure = generator.resolve_local("Main");
-    generator.emit(Instr::LoadLocal(main_procedure));
-    generator.emit(Instr::Call);
+    let main_procedure = generator.resolve_global("Main");
+    generator.emit(Instr::LoadGlobal(main_procedure));
+    generator.emit(Instr::Call(0)); // todo: allow args passed to main proc
 
-    generator.function.unwrap()
+    let script = generator.function.unwrap();
+    script
 }
 
 impl Generator<'_> {

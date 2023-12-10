@@ -7,8 +7,10 @@ pub enum Instr {
     Pop,
     LoadLocal(usize),
     StoreLocal(usize),
-    Call,
-    Ret,
+    LoadGlobal(usize),
+    StoreGlobal(usize),
+    Call(usize),
+    Ret(usize),
     Input,
     Output(Type),
     /// Concatenates two strings

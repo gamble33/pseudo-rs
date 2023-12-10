@@ -20,6 +20,7 @@ use crate::{
 struct CallFrame {
     function: *mut ObjFn,
     ret_instr_idx: usize,
+    window_start_idx: usize,
 }
 
 pub struct Vm {
@@ -108,6 +109,7 @@ impl Vm {
         self.frames.push(CallFrame {
             function: script as *mut ObjFn,
             ret_instr_idx: 0,
+            window_start_idx: 0,
         });
 
         let mut instr_idx = 0;
@@ -122,28 +124,55 @@ impl Vm {
                     self.stack.pop();
                 }
                 LoadLocal(idx) => unsafe {
-                    let value = self.stack.get_unchecked(idx);
+                    let window_start_idx = self.frames.last().unwrap().window_start_idx;
+                    let value = self.stack.get_unchecked(window_start_idx + idx);
                     self.stack.push(value.clone());
                 },
                 StoreLocal(idx) => {
-                    self.stack[idx] = self.stack.last().unwrap().clone();
-                }
-                Call => unsafe {
-                    // todo: find function based on params
-                    let function = self.stack.last().unwrap().obj as *mut ObjFn;
+                    let window_start_idx = self.frames.last().unwrap().window_start_idx;
+                    self.stack[window_start_idx + idx] = self.stack.last().unwrap().clone();
+                },
+                LoadGlobal(idx) => unsafe {
+                    let value = (*(script as *mut ObjFn)).chunk.constants.get_unchecked(idx);
+                    self.stack.push(value.clone());
+                },
+                StoreGlobal(idx) => unsafe {
+                    let value = self.stack.last().unwrap();
+                    (*(script as *mut ObjFn)).chunk.constants[idx] = *value;
+                },
+                Call(args_amount) => unsafe {
+                    let function = self
+                        .stack
+                        .get_unchecked(self.stack.len() - args_amount - 1)
+                        .obj as *mut ObjFn;
+
+                    // println!(
+                    //     "{}: {:?}",
+                    //     as_rs_string!((*function).name),
+                    //     (*function).chunk.instructions
+                    // );
+
+                    // self.stack.iter().for_each(|value| println!("{}", value.integer));
 
                     self.frames.push(CallFrame {
                         function,
                         ret_instr_idx: instr_idx,
+                        window_start_idx: self.stack.len() - args_amount,
                     });
                     instr_idx = 0;
                     instr_inc = 0;
                 },
-                Ret => {
-                    // todo: pop args as well
-                    self.stack.pop();
+                Ret(args_amount) => {
+                    let return_value = self.stack.pop().unwrap();
+
+                    // pop args and function reference off stack.
+                    for _ in 0..(args_amount + 1) {
+                        self.stack.pop();
+                    }
+
                     let call_frame = self.frames.pop().unwrap();
                     instr_idx = call_frame.ret_instr_idx;
+                    self.stack.push(return_value);
                 }
                 Input => {
                     let mut input = String::new();
