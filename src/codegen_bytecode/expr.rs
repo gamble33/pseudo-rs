@@ -53,6 +53,12 @@ impl Generator<'_> {
                 }
                 LiteralKind::Character(ch) => self.emit_constant(Value { char: *ch }),
             },
+            ExprKind::Call { callee, args } => {
+                let function_idx = self.resolve_global(callee);
+                self.emit(Instr::LoadGlobal(function_idx));
+                args.iter().for_each(|arg| self.expr(arg));
+                self.emit(Instr::Call(args.len()));
+            }
             ExprKind::Variable(name) => {
                 if let Some(arg) = self.resolve_local(name) {
                     self.emit(Instr::LoadLocal(arg));

@@ -47,6 +47,10 @@ impl Generator<'_> {
                 args.iter().for_each(|arg| self.expr(arg));
                 self.emit(Instr::Call(args.len()));
                 self.emit(Instr::Pop); // pop null value which is returned by procedure.
+            },
+            Stmt::Return(expr) => {
+                self.expr(expr);
+                self.emit(Instr::Ret(self.current_function_args.unwrap()));
             }
             Stmt::Input(holder) => {
                 self.emit(Instr::Input);

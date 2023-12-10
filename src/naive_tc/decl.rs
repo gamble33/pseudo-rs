@@ -15,7 +15,7 @@ enum CallableKind {
 pub struct Callable {
     kind: CallableKind,
     pub params: Vec<IrParam>,
-    return_type: Option<hlir::Type>,
+    pub return_type: Option<hlir::Type>,
 }
 
 pub struct IrParam {
@@ -28,7 +28,7 @@ pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
     match decl {
         ast::Decl::Procedure { name, params, body } => {
             if map.contains_key(&name) {
-                unimplemented!("Procedure defined twice.");
+                unimplemented!("PROCEDURE defined twice.");
             }
             let callable = Callable {
                 kind: CallableKind::Procedure,
@@ -41,6 +41,29 @@ pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
                     })
                     .collect(),
                 return_type: None,
+            };
+            map.insert(name, callable);
+        }
+        ast::Decl::Function {
+            name,
+            params,
+            body,
+            return_type_name,
+        } => {
+            if map.contains_key(&name) {
+                unimplemented!("FUNCTION defined twice.");
+            }
+            let callable = Callable {
+                kind: CallableKind::Procedure,
+                params: params
+                    .iter()
+                    .map(|param| IrParam {
+                        name: name.clone(),
+                        pseudo_type: pseudo_type(&param.type_name),
+                        passing_mode: param.passing_mode,
+                    })
+                    .collect(),
+                return_type: Some(pseudo_type(&return_type_name)),
             };
             map.insert(name, callable);
         }
@@ -61,6 +84,33 @@ impl TypeChecker {
                 };
                 self.exit_scope();
                 procedure
+            }
+            ast::Decl::Function {
+                name,
+                params,
+                body,
+                return_type_name,
+            } => {
+                self.enter_scope();
+                let params = self.params(params);
+                self.declare_params(&params);
+                let return_type = pseudo_type(&return_type_name);
+
+                let previous_expected_return_type =
+                    std::mem::replace(&mut self.current_expected_return_type, Some(return_type));
+
+                let body = self.stmt(body);
+                let function = hlir::Decl::Function {
+                    name,
+                    params,
+                    body,
+                    return_type,
+                };
+
+                self.current_expected_return_type = previous_expected_return_type;
+
+                self.exit_scope();
+                function
             }
         }
     }

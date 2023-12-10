@@ -10,7 +10,8 @@ impl Generator {
                 self.params(params);
                 self.target.push(')');
                 self.stmt(&body);
-            }
+            },
+            Decl::Function { .. } => unimplemented!()
         }
     }
 

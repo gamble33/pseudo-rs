@@ -16,6 +16,7 @@ use crate::vm::value::Value;
 
 struct Generator<'a> {
     function: Option<ObjFn>,
+    current_function_args: Option<usize>,
     vm: &'a mut Vm,
     scope_depth: u8,
     locals: Vec<Local>,
@@ -31,6 +32,7 @@ pub fn emit<'a>(program: Vec<Decl>, vm: &'a mut Vm) -> ObjFn {
 
     let mut generator = Generator {
         function: Some(script),
+        current_function_args: None,
         vm,
         scope_depth: 0,
         locals: Vec::new(),

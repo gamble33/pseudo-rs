@@ -44,6 +44,7 @@ impl Generator {
                 }
                 self.target.push_str(");");
             },
+            Stmt::Return(_) => unimplemented!(),
             Stmt::VarDecl { name, type_name } => {
                 self.type_name(type_name);
                 self.target.push_str(&identifier(name));

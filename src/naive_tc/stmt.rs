@@ -36,9 +36,6 @@ impl TypeChecker {
                 hlir::Stmt::While { body, condition }
             }
             ast::Stmt::Call { name, args } => {
-                if !self.check_decl_exists(&name) {
-                    unimplemented!("CALL to undefined PROCEDURE `{}`.", name);
-                }
                 let args: Vec<hlir::Expr> = args.into_iter().map(|arg| self.expr(arg)).collect();
                 if let Some(procedure) = self.callable_table.get(&name) {
                     if args.len() != procedure.params.len() {
@@ -49,8 +46,22 @@ impl TypeChecker {
                             unimplemented!("wrong Type of argument");
                         }
                     }
+                } else {
+                    unimplemented!("CALL to undefined PROCEDURE `{}`.", name);
                 }
                 hlir::Stmt::Call { name, args }
+            }
+            ast::Stmt::Return(expr_kind) => {
+                // todo: check all branches to see that a value is always being returned.
+                let expr = self.expr(expr_kind);
+                if self.current_expected_return_type.unwrap() != expr.pseudo_type {
+                    unimplemented!(
+                        "Attempting to return type {:?} when should be returning {:?}",
+                        expr.pseudo_type,
+                        self.current_expected_return_type
+                    );
+                }
+                hlir::Stmt::Return(expr)
             }
             ast::Stmt::VarDecl { name, type_name } => {
                 let pseudo_type = pseudo_type(&type_name);

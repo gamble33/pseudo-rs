@@ -50,20 +50,6 @@ impl Vm {
     }
 
     pub fn execute(&mut self, script: ObjFn) {
-        macro_rules! execute_for_type {
-            ($expr:expr, $type:expr, $($ident:ident),*) => {
-                unsafe {
-                    match $type {
-                        Type::Integer => { $(let $ident = self.stack.pop().unwrap().integer;)* $expr },
-                        Type::Real => { $(let $ident = self.stack.pop().unwrap().real;)* $expr },
-                        Type::Char => { $(let $ident = self.stack.pop().unwrap().char;)* $expr },
-                        Type::Boolean => { $(let $ident = self.stack.pop().unwrap().boolean;)* $expr },
-                        Type::String => { $(let $ident = as_rs_string!(self.stack.pop().unwrap().obj);)* $expr },
-                    }
-                }
-            };
-        }
-
         macro_rules! binary_op {
             ($op:tt, $type:expr) => {
                 {
@@ -131,7 +117,7 @@ impl Vm {
                 StoreLocal(idx) => {
                     let window_start_idx = self.frames.last().unwrap().window_start_idx;
                     self.stack[window_start_idx + idx] = self.stack.last().unwrap().clone();
-                },
+                }
                 LoadGlobal(idx) => unsafe {
                     let value = (*(script as *mut ObjFn)).chunk.constants.get_unchecked(idx);
                     self.stack.push(value.clone());
@@ -184,7 +170,18 @@ impl Vm {
                     let input = allocate_string(self, input);
                     self.stack.push(Value { obj: input });
                 }
-                Output(pseudo_type) => execute_for_type!(println!("{}", value), pseudo_type, value),
+                Output(pseudo_type) => unsafe {
+                    let value = self.stack.pop().unwrap();
+                    match pseudo_type {
+                        Type::Integer => println!("{}", value.integer),
+                        Type::Real => println!("{}", value.real),
+                        Type::Char => println!("{}", value.char),
+                        Type::Boolean => {
+                            println!("{}", if value.boolean { "TRUE" } else { "FALSE" })
+                        }
+                        Type::String => println!("{}", as_rs_string!(value.obj)),
+                    }
+                },
                 Concat => unsafe {
                     let b = as_rs_string!(self.stack.pop().unwrap().obj);
                     let a = as_rs_string!(self.stack.pop().unwrap().obj);

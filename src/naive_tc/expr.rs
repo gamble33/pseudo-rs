@@ -1,12 +1,12 @@
 use super::{match_types, TypeChecker};
-use crate::ir::ast::{ExprKind, LiteralKind};
+use crate::ir::ast::{self, LiteralKind};
 use crate::ir::hlir::{self, Type};
 use crate::lexer::token::{KeywordKind, TokenKind};
 
 impl TypeChecker {
-    pub fn expr(&mut self, expr: ExprKind) -> hlir::Expr {
+    pub fn expr(&mut self, expr: ast::ExprKind) -> hlir::Expr {
         match expr {
-            ExprKind::Binary { lhs, op, rhs } => {
+            ast::ExprKind::Binary { lhs, op, rhs } => {
                 use TokenKind::*;
                 let lhs = self.expr(*lhs);
                 let rhs = self.expr(*rhs);
@@ -40,7 +40,7 @@ impl TypeChecker {
                     },
                 }
             }
-            ExprKind::Logical { lhs, op, rhs } => {
+            ast::ExprKind::Logical { lhs, op, rhs } => {
                 let lhs = self.expr(*lhs);
                 let rhs = self.expr(*rhs);
                 if lhs.pseudo_type != Type::Boolean || rhs.pseudo_type != Type::Boolean {
@@ -57,7 +57,7 @@ impl TypeChecker {
                     },
                 }
             }
-            ExprKind::Unary { op, expr } => {
+            ast::ExprKind::Unary { op, expr } => {
                 let expr = self.expr(*expr);
                 match op.kind {
                     TokenKind::Keyword(KeywordKind::Not) => {
@@ -80,7 +80,7 @@ impl TypeChecker {
                     },
                 }
             }
-            ExprKind::Assignment { target, value } => {
+            ast::ExprKind::Assignment { target, value } => {
                 let value = self.expr(*value);
                 let var_target = match self.get_var_mut(&target) {
                     Some(var) => var,
@@ -98,7 +98,31 @@ impl TypeChecker {
                     },
                 }
             }
-            ExprKind::Literal(ref lit) => {
+            ast::ExprKind::Call { callee, args } => {
+                let callee = match *callee {
+                    ast::ExprKind::Variable(name) => name,
+                    _ => unimplemented!("Invalid FUCNTION callee expression"),
+                };
+                let args: Vec<hlir::Expr> = args.into_iter().map(|arg| self.expr(arg)).collect();
+
+                if let Some(function) = self.callable_table.get(&callee) {
+                    if args.len() != function.params.len() {
+                        unimplemented!("Wrong number of arguments");
+                    }
+                    for (param, arg) in function.params.iter().zip(args.iter()) {
+                        if param.pseudo_type != arg.pseudo_type {
+                            unimplemented!("Wrong type of argument");
+                        }
+                    }
+                    hlir::Expr {
+                        pseudo_type: function.return_type.unwrap(),
+                        expr_kind: hlir::ExprKind::Call { callee, args },
+                    }
+                } else {
+                    unimplemented!("Call to undefined FUNCTION `{}`", callee);
+                }
+            }
+            ast::ExprKind::Literal(ref lit) => {
                 let pseudo_type = match lit {
                     LiteralKind::Integer(_) => hlir::Type::Integer,
                     LiteralKind::Character(_) => hlir::Type::Char,
@@ -110,7 +134,7 @@ impl TypeChecker {
                     expr_kind: hlir::ExprKind::Literal(lit.clone()),
                 }
             }
-            ExprKind::Variable(name) => {
+            ast::ExprKind::Variable(name) => {
                 let var = match self.get_var_mut(&name) {
                     Some(var) => var,
                     None => unimplemented!("variable `{}` not declated", name),

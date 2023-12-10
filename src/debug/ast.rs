@@ -22,6 +22,10 @@ fn print_decl(decl: &Decl) {
             println!("proc {} ({:?})", name, params);
             print_stmt(body, 1);
         }
+        Decl::Function { name, params, body, return_type_name } => {
+            println!("fn {} ({:?}) -> {:?}", name, params, return_type_name);
+            print_stmt(body, 1);
+        }
     }
 }
 
@@ -66,6 +70,11 @@ fn print_stmt(stmt: &Stmt, depth: u32) {
             print_type_name(type_name);
             println!();
         }
+        Stmt::Return(expr) => {
+            println!("return");
+            print_expr(expr, depth + 1);
+
+        }
         Stmt::Input(target) => {
             println!("input");
             print_depth(depth + 1);
@@ -104,6 +113,17 @@ fn print_expr(expr: &ExprKind, depth: u32) {
             print_depth(depth);
             print!("{}", target);
             print_expr(value, depth + 1);
+        }
+        ExprKind::Call { callee, args } => {
+            println!("fn call");
+
+            print_depth(depth + 1);
+            println!("callee:");
+            print_expr(callee, depth + 2);
+
+            print_depth(depth);
+            println!("args:");
+            args.iter().for_each(|arg| print_expr(arg, depth + 2));
         }
         ExprKind::Variable(name) => {
             println!("var {}", name);

@@ -8,12 +8,13 @@ use self::{
     decl::{define_decl, Callable},
     var::Variable,
 };
-use crate::ir::{ast, hlir};
+use crate::ir::{ast, hlir::{self, Type}};
 use std::collections::HashMap;
 
 struct TypeChecker {
     symbol_table_stack: Vec<HashMap<String, Variable>>,
     callable_table: HashMap<String, Callable>,
+    current_expected_return_type: Option<Type>,
 }
 
 pub fn typecheck(decls: Vec<ast::Decl>) -> Vec<hlir::Decl> {
@@ -31,6 +32,7 @@ pub fn typecheck(decls: Vec<ast::Decl>) -> Vec<hlir::Decl> {
     let mut tc = TypeChecker {
         symbol_table_stack: vec![HashMap::new()],
         callable_table,
+        current_expected_return_type: None,
     };
 
     let mut hlir_decls = Vec::new();

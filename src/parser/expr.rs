@@ -142,12 +142,36 @@ where
             });
         }
 
-        self.primary()
+        self.call_expr()
+    }
+
+    fn call_expr(&mut self) -> ParseResult<ExprKind> {
+        let mut expr = self.primary()?;
+
+        if self.match_tokens(&[TokenKind::OpenParen]) {
+            self.tokens.next();
+            let mut args = Vec::new();
+            loop {
+                args.push(self.expr()?);
+                if !self.match_tokens(&[TokenKind::Comma]) {
+                    break;
+                }
+                self.tokens.next();
+            }
+            self.consume(
+                TokenKind::CloseParen,
+                String::from("expected `)` after arguments"),
+            )?;
+            expr = ExprKind::Call {
+                callee: Box::new(expr),
+                args,
+            }
+        }
+        Ok(expr)
     }
 
     fn primary(&mut self) -> ParseResult<ExprKind> {
         use TokenKind::*;
-
         Ok(match self.tokens.next() {
             Some(t) => match &t.kind {
                 Literal(literal) => match literal {

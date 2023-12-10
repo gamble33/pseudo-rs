@@ -36,6 +36,10 @@ pub enum ExprKind {
         target: String,
         value: Box<Expr>,
     },
+    Call {
+        callee: String,
+        args: Vec<Expr>
+    },
     Literal(ast::LiteralKind),
     Variable(String),
 }
@@ -67,6 +71,7 @@ pub enum Stmt {
         name: String,
     },
 
+    Return(Expr),
     Expr(Expr),
     Output(Expr),
     Input(String),
@@ -80,6 +85,12 @@ pub enum Decl {
         params: Vec<Param>,
         body: Stmt,
     },
+    Function {
+        name: String,
+        params: Vec<Param>,
+        body: Stmt,
+        return_type: Type,
+    }
 }
 
 #[derive(Debug, Clone)]

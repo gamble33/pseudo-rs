@@ -61,6 +61,7 @@ impl<I> Parser<I>
                     KeywordKind::For => self.for_stmt(),
                     KeywordKind::Declare => self.var_decl(),
                     KeywordKind::Call => self.call(),
+                    KeywordKind::Return => self.return_stmt(),
                     _ => self.expr_stmt()
                 },
                 _ => self.expr_stmt()
@@ -119,21 +120,7 @@ impl<I> Parser<I>
         })
     }
 
-    fn procedure(&mut self) -> ParseResult<Decl> {
-        let name = match self.tokens.next() {
-            Some(token) => match token.kind {
-                TokenKind::Identifier(name) => name,
-                _ => return self.error(
-                    String::from("expected identifier for PROCEDURE name."),
-                    Some(token),
-                )
-            }
-            None => return self.error(
-                String::from("expected identifier for PROCEDURE name."),
-                None,
-            )
-        };
-
+    fn params(&mut self) -> ParseResult<Vec<Param>> {
         let mut params = Vec::new();
         if self.match_tokens(&[TokenKind::OpenParen]) {
             self.tokens.next();
@@ -149,9 +136,28 @@ impl<I> Parser<I>
 
             self.consume(
                 TokenKind::CloseParen,
-                String::from("expected `)` after parameters."),
+                String::from("expected `)` after parameters.")
             )?;
         }
+        Ok(params)
+    }
+
+    fn procedure(&mut self) -> ParseResult<Decl> {
+        let name = match self.tokens.next() {
+            Some(token) => match token.kind {
+                TokenKind::Identifier(name) => name,
+                _ => return self.error(
+                    String::from("expected identifier for PROCEDURE name."),
+                    Some(token),
+                )
+            }
+            None => return self.error(
+                String::from("expected identifier for PROCEDURE name."),
+                None,
+            )
+        };
+
+        let params = self.params()?;
 
         self.consume(
             TokenKind::NewLine,
@@ -172,7 +178,49 @@ impl<I> Parser<I>
     }
 
     fn function(&mut self) -> ParseResult<Decl> {
-        todo!()
+        let name = match self.tokens.next() {
+            Some(token) => match token.kind {
+                TokenKind::Identifier(name) => name,
+                _ => return self.error(
+                    String::from("expected identifier for FUNCTION name."),
+                    Some(token),
+                )
+            }
+            None => return self.error(
+                String::from("expected identifier for FUNCTION name."),
+                None,
+            )
+        };
+
+        let params = self.params()?;
+
+        self.consume(
+            TokenKind::Keyword(KeywordKind::Returns),
+            String::from("expected keyword `RETURNS` after FUNCTION declaration")
+        )?;
+
+        let return_type_name = self.type_name()?;
+
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after FUNCTION return type.")
+        )?;
+
+        let body = self.block(&[
+            TokenKind::Keyword(KeywordKind::EndFunction),
+        ])?;
+
+        self.tokens.next();
+
+
+
+        Ok(Decl::Function {
+            name,
+            params,
+            body,
+            return_type_name,
+        })
+
     }
 
     fn call(&mut self) -> ParseResult<Stmt> {
@@ -220,6 +268,16 @@ impl<I> Parser<I>
             name,
             args
         })
+    }
+
+    fn return_stmt(&mut self) -> ParseResult<Stmt> {
+        self.tokens.next();
+        let expr = self.expr()?;
+        self.consume(
+            TokenKind::NewLine,
+            String::from("expected new line after expression."),
+        )?;
+        Ok(Stmt::Return(expr))
     }
 
     fn var_decl(&mut self) -> ParseResult<Stmt> {
