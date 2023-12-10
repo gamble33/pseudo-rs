@@ -8,6 +8,7 @@ impl TypeChecker {
         match expr {
             ast::ExprKind::Binary { lhs, op, rhs } => {
                 use TokenKind::*;
+                // todo: cast INTEGER to REAL when necessary.
                 let lhs = self.expr(*lhs);
                 let rhs = self.expr(*rhs);
                 if lhs.pseudo_type != rhs.pseudo_type {
@@ -21,14 +22,29 @@ impl TypeChecker {
                             );
                         }
                         Type::Boolean
-                    }
+                    },
+                    Keyword(KeywordKind::Mod) => if !match_types(&lhs.pseudo_type, &[Type::Real, Type::Integer]) {
+                        unimplemented!("Can only perform `MOD` operation on INTEGERs or REALs.");
+                    } else { lhs.pseudo_type },
                     Equal | NotEqual => Type::Boolean,
                     Ampersand => {
                         if lhs.pseudo_type != Type::String {
                             unimplemented!("Can only concatenate two strings");
                         }
                         Type::String
-                    }
+                    },
+                    Slash => {
+                        if lhs.pseudo_type != Type::Real {
+                            unimplemented!("`/` division operator can only be applied to REALs");
+                        }
+                        Type::Real
+                    },
+                    Keyword(KeywordKind::Div) => {
+                        if lhs.pseudo_type != Type::Integer {
+                            unimplemented!("`DIV` operator can only be applied to INTEGERs");
+                        }
+                        Type::Integer
+                    },
                     _ => lhs.pseudo_type,
                 };
                 hlir::Expr {

@@ -19,6 +19,7 @@ pub enum Instr {
     Sub(Type),
     Mul(Type),
     Div(Type),
+    Mod(Type),
     Gt(Type),
     GtEq(Type),
     Eq(Type),

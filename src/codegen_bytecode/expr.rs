@@ -12,7 +12,7 @@ impl Generator<'_> {
             ExprKind::Binary { lhs, op, rhs } => {
                 self.expr(&lhs);
                 self.expr(&rhs);
-                match op.kind {
+                match &op.kind {
                     Ampersand => self.emit(Instr::Concat),
                     Plus => self.emit(Instr::Add(lhs.pseudo_type)),
                     Minus => self.emit(Instr::Sub(lhs.pseudo_type)),
@@ -32,6 +32,11 @@ impl Generator<'_> {
                     NotEqual => {
                         self.emit(Instr::Eq(lhs.pseudo_type));
                         self.emit(Instr::Not);
+                    },
+                    Keyword(keyword_kind) => match keyword_kind {
+                        KeywordKind::Div => self.emit(Instr::Div(lhs.pseudo_type)),
+                        KeywordKind::Mod => self.emit(Instr::Mod(lhs.pseudo_type)),
+                        _ => unreachable!()
                     }
                     _ => unreachable!(),
                 }

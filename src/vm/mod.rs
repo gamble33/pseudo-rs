@@ -194,7 +194,24 @@ impl Vm {
                 Add(pseudo_type) => binary_op!(+, pseudo_type),
                 Sub(pseudo_type) => binary_op!(-, pseudo_type),
                 Mul(pseudo_type) => binary_op!(*, pseudo_type),
-                Div(_pseudo_type) => unimplemented!(),
+                Div(pseudo_type) => unsafe {
+                    let b = self.stack.pop().unwrap();
+                    let a = self.stack.pop().unwrap();
+                    match pseudo_type {
+                        Type::Integer => self.stack.push(Value {integer: a.integer / b.integer}),
+                        Type::Real => self.stack.push(Value {real: a.real / b.real}),
+                        _ => unreachable!(),
+                    };
+                },
+                Mod(pseudo_type) => unsafe {
+                    let b = self.stack.pop().unwrap();
+                    let a = self.stack.pop().unwrap();
+                    match pseudo_type {
+                        Type::Integer => self.stack.push(Value {integer: a.integer % b.integer}),
+                        Type::Real => self.stack.push(Value {real: a.real % b.real}),
+                        _ => unreachable!(),
+                    };
+                },
                 Gt(pseudo_type) => binary_comparison!(>, pseudo_type),
                 GtEq(pseudo_type) => binary_comparison!(>=, pseudo_type),
                 Eq(pseudo_type) => unsafe {

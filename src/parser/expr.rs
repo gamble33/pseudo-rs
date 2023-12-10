@@ -1,5 +1,5 @@
 use crate::ir::ast::{ExprKind, LiteralKind};
-use crate::lexer::token::{KeywordKind, Token, TokenKind, TokenLiteralKind};
+use crate::lexer::token::{KeywordKind::*, Token, TokenKind::*, TokenLiteralKind};
 use crate::parser::error::ParseResult;
 use crate::parser::Parser;
 
@@ -14,7 +14,7 @@ where
     fn assignment(&mut self) -> ParseResult<ExprKind> {
         let expr = self.or()?;
 
-        if self.match_tokens(&[TokenKind::LeftArrow]) {
+        if self.match_tokens(&[LeftArrow]) {
             self.tokens.next();
             // Note: This allows chained assignment syntax `a <- b <- c`.
             // Might need to change this...
@@ -33,7 +33,7 @@ where
     fn or(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.and()?;
 
-        while self.match_tokens(&[TokenKind::Keyword(KeywordKind::Or)]) {
+        while self.match_tokens(&[Keyword(Or)]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.and()?;
             expr = ExprKind::Logical {
@@ -49,7 +49,7 @@ where
     fn and(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.equality()?;
 
-        while self.match_tokens(&[TokenKind::Keyword(KeywordKind::And)]) {
+        while self.match_tokens(&[Keyword(And)]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.equality()?;
             expr = ExprKind::Logical {
@@ -67,7 +67,7 @@ where
     fn equality(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.comparison()?;
 
-        while self.match_tokens(&[TokenKind::Equal, TokenKind::NotEqual]) {
+        while self.match_tokens(&[Equal, NotEqual]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.comparison()?;
             expr = ExprKind::Binary {
@@ -84,10 +84,10 @@ where
         let mut expr = self.term()?;
 
         while self.match_tokens(&[
-            TokenKind::Greater,
-            TokenKind::GreaterEqual,
-            TokenKind::Less,
-            TokenKind::LessEqual,
+            Greater,
+            GreaterEqual,
+            Less,
+            LessEqual,
         ]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.term()?;
@@ -104,7 +104,7 @@ where
     fn term(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.factor()?;
 
-        while self.match_tokens(&[TokenKind::Plus, TokenKind::Minus, TokenKind::Ampersand]) {
+        while self.match_tokens(&[Plus, Minus, Ampersand]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.factor()?;
             expr = ExprKind::Binary {
@@ -120,7 +120,12 @@ where
     fn factor(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.unary()?;
 
-        while self.match_tokens(&[TokenKind::Star, TokenKind::Slash]) {
+        while self.match_tokens(&[
+            Star,
+            Slash,
+            Keyword(Div),
+            Keyword(Mod),
+        ]) {
             let op = self.tokens.next().unwrap();
             let rhs = self.unary()?;
             expr = ExprKind::Binary {
@@ -135,7 +140,7 @@ where
 
     fn unary(&mut self) -> ParseResult<ExprKind> {
         // todo: exhaust list of unary operators
-        if self.match_tokens(&[TokenKind::Minus, TokenKind::Keyword(KeywordKind::Not)]) {
+        if self.match_tokens(&[Minus, Keyword(Not)]) {
             return Ok(ExprKind::Unary {
                 op: self.tokens.next().unwrap(),
                 expr: Box::new(self.unary()?),
@@ -148,18 +153,18 @@ where
     fn call_expr(&mut self) -> ParseResult<ExprKind> {
         let mut expr = self.primary()?;
 
-        if self.match_tokens(&[TokenKind::OpenParen]) {
+        if self.match_tokens(&[OpenParen]) {
             self.tokens.next();
             let mut args = Vec::new();
             loop {
                 args.push(self.expr()?);
-                if !self.match_tokens(&[TokenKind::Comma]) {
+                if !self.match_tokens(&[Comma]) {
                     break;
                 }
                 self.tokens.next();
             }
             self.consume(
-                TokenKind::CloseParen,
+                CloseParen,
                 String::from("expected `)` after arguments"),
             )?;
             expr = ExprKind::Call {
@@ -171,7 +176,6 @@ where
     }
 
     fn primary(&mut self) -> ParseResult<ExprKind> {
-        use TokenKind::*;
         Ok(match self.tokens.next() {
             Some(t) => match &t.kind {
                 Literal(literal) => match literal {
@@ -185,8 +189,8 @@ where
                     }
                 },
                 Keyword(keyword) => match keyword {
-                    KeywordKind::True => ExprKind::Literal(LiteralKind::Boolean(true)),
-                    KeywordKind::False => ExprKind::Literal(LiteralKind::Boolean(false)),
+                    True => ExprKind::Literal(LiteralKind::Boolean(true)),
+                    False => ExprKind::Literal(LiteralKind::Boolean(false)),
                     _ => {
                         return self.error(
                             String::from("expected literal, identifier or grouping (not keyword)"),
