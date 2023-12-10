@@ -41,6 +41,9 @@ impl TypeChecker {
                 }
                 let args: Vec<hlir::Expr> = args.into_iter().map(|arg| self.expr(arg)).collect();
                 if let Some(procedure) = self.callable_table.get(&name) {
+                    if args.len() != procedure.params.len() {
+                        unimplemented!("wrong number of arguments");
+                    }
                     for (param, arg) in procedure.params.iter().zip(args.iter()) {
                         if param.pseudo_type != arg.pseudo_type {
                             unimplemented!("wrong Type of argument");

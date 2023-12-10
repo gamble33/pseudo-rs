@@ -65,7 +65,7 @@ impl TypeChecker {
         }
     }
 
-    pub fn check_decl_exists(&self, name: &String) -> bool {
+    pub fn check_decl_exists(&self, name: &str) -> bool {
         self.callable_table.contains_key(name)
     }
 

@@ -42,10 +42,12 @@ impl TypeChecker {
     }
 
     fn check_var_exists(&self, name: &str) -> bool {
-        self.symbol_table_stack
-            .iter()
-            .rev()
-            .find(|symbol_table| symbol_table.contains_key(name))
-            .is_some()
+        self.check_decl_exists(name)
+            || self
+                .symbol_table_stack
+                .iter()
+                .rev()
+                .find(|symbol_table| symbol_table.contains_key(name))
+                .is_some()
     }
 }
