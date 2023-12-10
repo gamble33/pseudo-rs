@@ -24,6 +24,10 @@ pub fn typecheck(decls: Vec<ast::Decl>) -> Vec<hlir::Decl> {
         define_decl(decl, &mut callable_table);
     }
 
+    if !callable_table.contains_key("Main") {
+        unimplemented!("`PROCEDURE Main` wasn't defined");
+    }
+
     let mut tc = TypeChecker {
         symbol_table_stack: vec![HashMap::new()],
         callable_table,
