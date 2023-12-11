@@ -173,15 +173,17 @@ impl Vm {
                 Output(pseudo_type) => unsafe {
                     let value = self.stack.pop().unwrap();
                     match pseudo_type {
-                        Type::Integer => println!("{}", value.integer),
-                        Type::Real => println!("{}", value.real),
-                        Type::Char => println!("{}", value.char),
+                        Type::Integer => print!("{}", value.integer),
+                        Type::Real => print!("{}", value.real),
+                        Type::Char => print!("{}", value.char),
                         Type::Boolean => {
-                            println!("{}", if value.boolean { "TRUE" } else { "FALSE" })
+                            print!("{}", if value.boolean { "TRUE" } else { "FALSE" })
                         }
-                        Type::String => println!("{}", as_rs_string!(value.obj)),
+                        Type::String => print!("{}", as_rs_string!(value.obj)),
                     }
                 },
+                OutputLn => println!(),
+                OutputSpace => print!(" "),
                 Concat => unsafe {
                     let b = as_rs_string!(self.stack.pop().unwrap().obj);
                     let a = as_rs_string!(self.stack.pop().unwrap().obj);

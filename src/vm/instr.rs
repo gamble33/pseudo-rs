@@ -13,6 +13,8 @@ pub enum Instr {
     Ret(usize),
     Input,
     Output(Type),
+    OutputLn,
+    OutputSpace,
     /// Concatenates two strings
     Concat,
     Add(Type),

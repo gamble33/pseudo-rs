@@ -84,9 +84,11 @@ fn print_stmt(stmt: &Stmt, depth: u32) {
             println!("expr stmt");
             print_expr(expr, depth + 1);
         }
-        Stmt::Output(expr) => {
+        Stmt::Output(exprs) => {
             println!("output");
-            print_expr(expr, depth + 1);
+            exprs.iter().for_each(|expr| {
+                print_expr(expr, depth + 1);
+            });
         }
     }
 }

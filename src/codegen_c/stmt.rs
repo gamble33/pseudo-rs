@@ -54,11 +54,7 @@ impl Generator {
                 self.expr(expr);
                 self.target.push(';');
             }
-            Stmt::Output(expr) => {
-                self.target.push_str("print(");
-                self.expr(expr);
-                self.target.push_str(");");
-            }
+            Stmt::Output(_expr) => unimplemented!(),
             Stmt::Input(_) => unimplemented!(),
             Stmt::Block(stmts) => {
                 self.target.push('{');

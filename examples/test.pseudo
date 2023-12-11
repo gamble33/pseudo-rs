@@ -1,15 +1,18 @@
 PROCEDURE Main
-    CALL Add(5, 1)
-    Sum(99, 1)
-ENDPROCEDURE
+    DECLARE LivesLeft : INTEGER
+    DECLARE XPos : REAL
+    DECLARE YPos : REAL
+    DECLARE Name : STRING
+    DECLARE Based : BOOLEAN
 
-FUNCTION Add(A: INTEGER, B: INTEGER) RETURNS INTEGER
-    DECLARE Result : INTEGER
-    Result <- A + B
-    OUTPUT Result
-    RETURN Result
-ENDFUNCTION
+    OUTPUT "Input Name"
+    INPUT Name
 
-PROCEDURE Sum(A: INTEGER, B: INTEGER)
-    OUTPUT A + B
+    LivesLeft <- 3
+    XPos <- 34.45
+    YPos <- 64.0
+    Based <- TRUE
+
+    OUTPUT Name, "is based:", Based
+    OUTPUT "Lives:", LivesLeft, "Pos =", XPos, ",", YPos
 ENDPROCEDURE

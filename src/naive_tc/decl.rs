@@ -20,9 +20,7 @@ pub struct Callable {
 }
 
 pub struct IrParam {
-    name: String,
     pub pseudo_type: hlir::Type,
-    passing_mode: Option<ast::PassingMode>,
 }
 
 pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
@@ -36,9 +34,7 @@ pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
                 params: params
                     .iter()
                     .map(|param| IrParam {
-                        name: name.clone(),
                         pseudo_type: pseudo_type(&param.type_name),
-                        passing_mode: param.passing_mode,
                     })
                     .collect(),
                 return_type: None,
@@ -59,9 +55,7 @@ pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
                 params: params
                     .iter()
                     .map(|param| IrParam {
-                        name: name.clone(),
                         pseudo_type: pseudo_type(&param.type_name),
-                        passing_mode: param.passing_mode,
                     })
                     .collect(),
                 return_type: Some(pseudo_type(&return_type_name)),

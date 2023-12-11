@@ -326,12 +326,20 @@ impl<I> Parser<I>
 
     fn output(&mut self) -> ParseResult<Stmt> {
         self.tokens.next();
-        let expr = self.expr()?;
+
+        let mut exprs = Vec::new();
+        loop {
+            exprs.push(self.expr()?);
+            if !self.match_tokens(&[TokenKind::Comma]) {
+                break;
+            }
+            self.tokens.next();
+        }
         self.consume(
             TokenKind::NewLine,
             String::from("expected new line after expression."),
         )?;
-        Ok(Stmt::Output(expr))
+        Ok(Stmt::Output(exprs))
     }
 
     fn input(&mut self) -> ParseResult<Stmt> {

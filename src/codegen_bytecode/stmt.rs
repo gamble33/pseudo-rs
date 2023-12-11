@@ -4,9 +4,13 @@ use crate::{ir::hlir::Stmt, vm::instr::Instr};
 impl Generator<'_> {
     pub fn stmt(&mut self, stmt: &Stmt) {
         match stmt {
-            Stmt::Output(expr) => {
-                self.expr(expr);
-                self.emit(Instr::Output(expr.pseudo_type));
+            Stmt::Output(exprs) => {
+                exprs.iter().for_each(|expr| {
+                    self.expr(expr);
+                    self.emit(Instr::Output(expr.pseudo_type));
+                    self.emit(Instr::OutputSpace);
+                });
+                self.emit(Instr::OutputLn);
             }
             Stmt::If {
                 condition,

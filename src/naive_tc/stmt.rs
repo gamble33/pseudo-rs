@@ -1,4 +1,4 @@
-use super::{types::pseudo_type, decl::CallableKind};
+use super::{decl::CallableKind, types::pseudo_type};
 use crate::{
     ir::{ast, hlir},
     naive_tc::TypeChecker,
@@ -72,7 +72,12 @@ impl TypeChecker {
                 hlir::Stmt::VarDecl { name }
             }
             ast::Stmt::Expr(expr_kind) => hlir::Stmt::Expr(self.expr(expr_kind)),
-            ast::Stmt::Output(expr_kind) => hlir::Stmt::Output(self.expr(expr_kind)),
+            ast::Stmt::Output(expr_kinds) => hlir::Stmt::Output(
+                expr_kinds
+                    .into_iter()
+                    .map(|expr_kind| self.expr(expr_kind))
+                    .collect(),
+            ),
             ast::Stmt::Input(holder) => {
                 let var = match self.get_var_mut(&holder) {
                     Some(var) => var,
