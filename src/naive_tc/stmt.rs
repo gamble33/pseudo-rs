@@ -1,4 +1,4 @@
-use super::types::pseudo_type;
+use super::{types::pseudo_type, decl::CallableKind};
 use crate::{
     ir::{ast, hlir},
     naive_tc::TypeChecker,
@@ -38,6 +38,9 @@ impl TypeChecker {
             ast::Stmt::Call { name, args } => {
                 let args: Vec<hlir::Expr> = args.into_iter().map(|arg| self.expr(arg)).collect();
                 if let Some(procedure) = self.callable_table.get(&name) {
+                    if procedure.kind != CallableKind::Procedure {
+                        unimplemented!("Call functions without keyword `CALL`.");
+                    }
                     if args.len() != procedure.params.len() {
                         unimplemented!("wrong number of arguments");
                     }

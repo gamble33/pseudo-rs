@@ -3,7 +3,7 @@ mod keyword;
 mod tests;
 pub mod token;
 
-use crate::lexer::token::{KeywordKind, Token, TokenKind, TokenLiteralKind};
+use crate::lexer::token::{Token, TokenKind, TokenLiteralKind};
 use std::iter::Peekable;
 use std::str::Chars;
 use TokenKind::*;

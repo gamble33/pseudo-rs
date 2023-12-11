@@ -1,25 +1,15 @@
-// Prints every prime number from 2, up to 1000.
 PROCEDURE Main
-    DECLARE I : REAL
-    I <- 0.0
-    WHILE I < 1000.0
-        IF IsPrime(I) THEN
-            OUTPUT I
-        ENDIF
-        I <- I + 1.0
-    ENDWHILE
+    CALL Add(5, 1)
+    Sum(99, 1)
 ENDPROCEDURE
 
-
-// Checks if a number is prime. Returns TRUE if it is.
-FUNCTION IsPrime(N : REAL) RETURNS BOOLEAN
-    DECLARE I : REAL
-    I <- 2.0
-    WHILE I < N / 2.0
-        IF N MOD I = 0.0 THEN
-            RETURN FALSE
-        ENDIF
-        I <- I + 1.0
-    ENDWHILE
-    RETURN TRUE
+FUNCTION Add(A: INTEGER, B: INTEGER) RETURNS INTEGER
+    DECLARE Result : INTEGER
+    Result <- A + B
+    OUTPUT Result
+    RETURN Result
 ENDFUNCTION
+
+PROCEDURE Sum(A: INTEGER, B: INTEGER)
+    OUTPUT A + B
+ENDPROCEDURE

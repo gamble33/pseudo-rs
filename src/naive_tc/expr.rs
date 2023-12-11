@@ -1,3 +1,4 @@
+use super::decl::CallableKind;
 use super::{match_types, TypeChecker};
 use crate::ir::ast::{self, LiteralKind};
 use crate::ir::hlir::{self, Type};
@@ -122,6 +123,9 @@ impl TypeChecker {
                 let args: Vec<hlir::Expr> = args.into_iter().map(|arg| self.expr(arg)).collect();
 
                 if let Some(function) = self.callable_table.get(&callee) {
+                    if function.kind != CallableKind::Function {
+                        unimplemented!("Use keyword `CALL` to invoke PROCEDUREs.");
+                    }
                     if args.len() != function.params.len() {
                         unimplemented!("Wrong number of arguments");
                     }

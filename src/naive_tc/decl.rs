@@ -7,13 +7,14 @@ use crate::{
 
 use super::types::pseudo_type;
 
-enum CallableKind {
+#[derive(PartialEq)]
+pub enum CallableKind {
     Procedure,
     Function,
 }
 
 pub struct Callable {
-    kind: CallableKind,
+    pub kind: CallableKind,
     pub params: Vec<IrParam>,
     pub return_type: Option<hlir::Type>,
 }
@@ -26,7 +27,7 @@ pub struct IrParam {
 
 pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
     match decl {
-        ast::Decl::Procedure { name, params, body } => {
+        ast::Decl::Procedure { name, params, .. } => {
             if map.contains_key(&name) {
                 unimplemented!("PROCEDURE defined twice.");
             }
@@ -47,14 +48,14 @@ pub fn define_decl(decl: ast::Decl, map: &mut HashMap<String, Callable>) {
         ast::Decl::Function {
             name,
             params,
-            body,
             return_type_name,
+            ..
         } => {
             if map.contains_key(&name) {
                 unimplemented!("FUNCTION defined twice.");
             }
             let callable = Callable {
-                kind: CallableKind::Procedure,
+                kind: CallableKind::Function,
                 params: params
                     .iter()
                     .map(|param| IrParam {
