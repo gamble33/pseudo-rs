@@ -1,7 +1,6 @@
-mod keyword;
-#[cfg(test)]
-mod tests;
 pub mod token;
+mod keyword;
+#[cfg(test)] mod tests;
 
 use crate::lexer::token::{Token, TokenKind, TokenLiteralKind};
 use std::iter::Peekable;

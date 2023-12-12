@@ -1,6 +1,5 @@
 pub mod expr;
 pub mod stmt;
-#[allow(dead_code)]
 pub mod type_name;
 
 use crate::ir::ast::Decl;

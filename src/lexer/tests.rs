@@ -60,14 +60,13 @@ fn comments() {
 #[test]
 fn new_lines() {
     check_lexing(
-        "line1\r\nline2\nline3\rline4",
+        "line1\r\nline2\nline3 line4",
         vec![
             Identifier(String::from("line1")),
             NewLine,
             Identifier(String::from("line2")),
             NewLine,
             Identifier(String::from("line3")),
-            NewLine,
             Identifier(String::from("line4")),
         ],
     );

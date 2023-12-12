@@ -26,7 +26,7 @@ impl TypeChecker {
                 }
             }
             ast::Stmt::Repeat { body, until } => {
-                let body = Box::new(self.stmt(*body));
+                let body: Box<hlir::Stmt> = Box::new(self.stmt(*body));
                 let until = self.expr(until);
                 hlir::Stmt::Repeat { body, until }
             }
@@ -56,6 +56,7 @@ impl TypeChecker {
             }
             ast::Stmt::Return(expr_kind) => {
                 // todo: check all branches to see that a value is always being returned.
+                // hint: control flow graph
                 let expr = self.expr(expr_kind);
                 if self.current_expected_return_type.unwrap() != expr.pseudo_type {
                     unimplemented!(
