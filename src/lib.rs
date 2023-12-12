@@ -1,22 +1,22 @@
 pub mod codegen_bytecode;
 mod codegen_c;
 pub mod ir;
-pub mod lexer;
+#[allow(unreachable_code)] pub mod lexer;
 pub mod naive_tc;
 pub mod parser;
 pub mod vm;
 
 use crate::codegen_c::generate;
 use crate::lexer::Lexer;
-use crate::parser::Parser;
+use crate::parser::program;
 
 pub fn interpret(src: &str) {
     let tokens = Lexer::new(src);
 
-    let program = match Parser::new(tokens.peekable()).program() {
+    let program = match program(tokens.peekable()) {
         Ok(decls) => decls,
         Err(errors) => {
-            parser::print_parse_errors(errors);
+            parser::error::print_parse_errors(src, errors);
             std::process::exit(0);
         }
     };
@@ -30,10 +30,10 @@ pub fn interpret(src: &str) {
 pub fn compile_to_c(src: &str) {
     let tokens = Lexer::new(src);
 
-    let program = match Parser::new(tokens.peekable()).program() {
+    let program = match program(tokens.peekable()) {
         Ok(decls) => decls,
         Err(errors) => {
-            parser::print_parse_errors(errors);
+            parser::error::print_parse_errors(src, errors);
             std::process::exit(0);
         }
     };

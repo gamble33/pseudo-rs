@@ -10,12 +10,20 @@ use TokenKind::*;
 
 pub struct Lexer<'a> {
     src: Peekable<Chars<'a>>,
+    line: usize,
+    col: usize,
+    current: usize,
+    last_token_new_line: bool,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(src: &'a str) -> Self {
         Self {
             src: src.chars().peekable(),
+            line: 0,
+            col: 0,
+            current: 0,
+            last_token_new_line: true,
         }
     }
 }
@@ -28,6 +36,11 @@ impl Iterator for Lexer<'_> {
             Some(ch) => ch,
             None => return None,
         };
+
+        let token_start = self.current - 1;
+        let token_col = self.col;
+        let token_line = self.line;
+        self.last_token_new_line = false;
 
         let token_kind = match first_char {
             '+' => Plus,
@@ -48,15 +61,15 @@ impl Iterator for Lexer<'_> {
             '<' => match self.src.peek() {
                 Some(c) => match c {
                     '>' => {
-                        self.src.next();
+                        self.advance();
                         NotEqual
                     }
                     '=' => {
-                        self.src.next();
+                        self.advance();
                         LessEqual
                     }
                     '-' => {
-                        self.src.next();
+                        self.advance();
                         LeftArrow
                     }
                     _ => Less,
@@ -66,7 +79,7 @@ impl Iterator for Lexer<'_> {
             '>' => match self.src.peek() {
                 Some(c) => match c {
                     '=' => {
-                        self.src.next();
+                        self.advance();
                         GreaterEqual
                     }
                     _ => Greater,
@@ -74,15 +87,9 @@ impl Iterator for Lexer<'_> {
                 None => Greater,
             },
 
-            // todo: fix if new line isn't empty (contains space),
-            // then its registered as another newline.
             ch if is_newline(ch) => {
-                while match self.src.peek() {
-                    Some(&c) if is_newline(c) => true,
-                    _ => false,
-                } {
-                    self.src.next();
-                }
+                self.last_token_new_line = true;
+                self.new_line();
                 NewLine
             }
 
@@ -91,14 +98,33 @@ impl Iterator for Lexer<'_> {
             ch if ch.is_ascii_digit() => self.number(ch),
             ch if ch.is_alphabetic() => self.identifier(ch),
 
-            _ => todo!("implement error handling for invalid token"),
+            _ => TokenKind::Error("Invalid token"),
         };
 
-        Some(Token { kind: token_kind })
+        Some(Token {
+            kind: token_kind,
+            line: token_line,
+            col: token_col,
+            len: self.current - token_start,
+        })
     }
 }
 
 impl Lexer<'_> {
+    fn advance(&mut self) -> Option<char> {
+        let ch = self.src.next();
+        self.current += 1;
+        if ch.is_some_and(|ch| !ch.is_control()) {
+            self.col += 1;
+        }
+        ch
+    }
+
+    fn new_line(&mut self) {
+        self.line += 1;
+        self.col = 0;
+    }
+
     fn identifier(&mut self, first_char: char) -> TokenKind {
         let mut value = String::from(first_char);
         self.consume_while(|ch| ch.is_alphabetic() || ch.is_ascii_digit(), &mut value);
@@ -111,19 +137,17 @@ impl Lexer<'_> {
         self.consume_while(|c| c.is_ascii_digit(), &mut string_value);
 
         if self.src.peek().is_some_and(|&ch| ch == '.') {
-            string_value.push(self.src.next().unwrap());
+            string_value.push(self.advance().unwrap());
             self.consume_while(|c| c.is_ascii_digit(), &mut string_value);
-            let value = match string_value.parse::<f64>() {
-                Ok(f) => f,
-                Err(_) => unimplemented!("REAL value too large."),
-            };
-            TokenKind::Literal(TokenLiteralKind::Real(value))
+            match string_value.parse::<f64>() {
+                Ok(f) => TokenKind::Literal(TokenLiteralKind::Real(f)),
+                Err(_) => TokenKind::Error("REAL literal too large"),
+            }
         } else {
-            let value = match string_value.parse::<i64>() {
-                Ok(i) => i,
-                Err(_) => unimplemented!("Implement integers being too big"),
-            };
-            TokenKind::Literal(TokenLiteralKind::Integer(value))
+            match string_value.parse::<i64>() {
+                Ok(i) => TokenKind::Literal(TokenLiteralKind::Integer(i)),
+                Err(_) => TokenKind::Error("INTEGER literal too large"),
+            }
         }
     }
 
@@ -136,23 +160,26 @@ impl Lexer<'_> {
                 _ => false,
             }
         {
-            todo!("unterminated string");
+            todo!("Should not go to parsing stage if this happens");
+            TokenKind::Error("Unterminated STRING");
         }
-        self.src.next();
+        self.advance();
         TokenKind::Literal(TokenLiteralKind::Str(value))
     }
 
     fn character(&mut self) -> TokenKind {
-        let ch = match self.src.next() {
+        let ch = match self.advance() {
             Some(ch) => ch,
             None => {
-                todo!("Expected character after `'`.");
+                todo!("Should not go to parsing stage if this happens");
+                return TokenKind::Error("Expected character after `'`.");
             }
         };
-        match self.src.next() {
+        match self.advance() {
             Some('\'') => (),
             _ => {
-                todo!("Expected delimiting `'` after character for literal.");
+                todo!("Should not go to parsing stage if this happens");
+                return TokenKind::Error("Expected delimiting `'` after character for literal.");
             }
         };
 
@@ -162,25 +189,48 @@ impl Lexer<'_> {
     fn skip_whitespace_and_get_first_char(&mut self) -> Option<char> {
         while self.src.peek().is_some() {
             match self.src.peek().unwrap() {
+                // todo: allow comments come after a statement
+                // currently, comments have to be on their own lines
                 '/' => {
-                    self.src.next();
+                    self.advance();
                     match self.src.peek() {
                         Some(&ch) if ch == '/' => {
-                            self.src.next();
+                            self.advance();
 
+                            // advance until the end of the line.
                             self.advance_while(|ch| !is_newline(ch));
-                            self.advance_while(is_newline);
+                            self.new_line();
+
+                            // advance until a non-whitespace character is found.
+                            self.skip_whitespace()
                         }
                         _ => return Some('/'),
                     }
                 }
-                &ch if is_whitespace(ch) => {
-                    self.src.next();
+                &ch if is_newline(ch) => {
+                    let ch = self.advance();
+
+                    if !self.last_token_new_line {
+                        return ch;
+                    }
+                    self.new_line();
                 }
-                _ => return self.src.next(),
+                &ch if is_whitespace(ch) => {
+                    self.advance();
+                }
+                _ => return self.advance(),
             }
         }
         None
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self.src.peek().is_some_and(|&ch| is_whitespace(ch)) {
+            let ch = self.advance().unwrap();
+            if is_newline(ch) {
+                self.new_line();
+            }
+        }
     }
 
     fn advance_while<C>(&mut self, condition: C)
@@ -191,7 +241,7 @@ impl Lexer<'_> {
             Some(&ch) if condition(ch) => true,
             _ => false,
         } {
-            self.src.next();
+            self.advance();
         }
     }
 
@@ -203,15 +253,15 @@ impl Lexer<'_> {
             Some(&c) => c,
             None => return,
         }) {
-            buffer.push(self.src.next().unwrap());
+            buffer.push(self.advance().unwrap());
         }
     }
 }
 
 fn is_whitespace(ch: char) -> bool {
-    ch.is_whitespace() && ch != '\n' && ch != '\r'
+    ch.is_whitespace()
 }
 
 fn is_newline(ch: char) -> bool {
-    ch == '\n' || ch == '\r'
+    ch == '\n'
 }

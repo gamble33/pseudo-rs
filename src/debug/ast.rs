@@ -1,16 +1,15 @@
 use pseudo_rs::{
     ir::ast::{BaseTypeName, ExprKind, Stmt, TypeName, Decl, LiteralKind},
     lexer::{token::Token, token::TokenKind, Lexer},
-    parser,
-    parser::Parser,
+    parser::{self, program},
 };
 
 pub fn print_ast(src: &str) {
-    let program = Parser::new(Lexer::new(src).peekable()).program();
+    let program = program(Lexer::new(src).peekable());
     match program {
         Ok(decls) => decls.iter().for_each(|decl| print_decl(decl)),
         Err(errors) => {
-            parser::print_parse_errors(errors);
+            parser::error::print_parse_errors(src, errors);
             std::process::exit(0);
         }
     };

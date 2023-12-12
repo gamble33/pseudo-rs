@@ -1,31 +1,24 @@
+use crate::ir::ast::{Decl, ExprKind, LiteralKind, Param, PassingMode, Stmt};
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::ParseResult;
 use crate::parser::Parser;
-use crate::ir::ast::{ExprKind, LiteralKind, Stmt, Decl, PassingMode, Param};
 
 impl<I> Parser<I>
-    where I: Iterator<Item=Token>
+where
+    I: Iterator<Item = Token>,
 {
     pub fn decl(&mut self) -> ParseResult<Decl> {
-        let decl = match self.tokens.next() {
-            Some(token) => match &token.kind {
-                TokenKind::Keyword(keyword) => match keyword {
-                    KeywordKind::Procedure => self.procedure(),
-                    KeywordKind::Function => self.function(),
-                    _ => self.error(
-                        String::from("expected declaration."),
-                        Some(token),
-                    )
+        let token = self.tokens.next();
+        let decl = match token {
+            Some(tok) => match tok.kind {
+                TokenKind::Keyword(ref keyword) => match keyword {
+                    KeywordKind::Procedure => self.procedure(tok),
+                    KeywordKind::Function => self.function(tok),
+                    _ => self.error(String::from("expected declaration."), Some(tok)),
                 },
-                _ => self.error(
-                    String::from("expected declaration."),
-                    Some(token),
-                )
-            }
-            None => self.error(
-                String::from("expected declaration."),
-                None,
-            )
+                _ => self.error(String::from("expected declaration."), Some(tok)),
+            },
+            None => self.error(String::from("expected declaration."), None),
         }?;
 
         match self.tokens.next() {
@@ -34,20 +27,38 @@ impl<I> Parser<I>
                 _ => self.error(
                     String::from("expected new line after declaration."),
                     Some(token),
-                )
+                ),
             },
-            None => Ok(decl)
+            None => Ok(decl),
         }
     }
 
-    fn block(&mut self, block_terminators: &[TokenKind]) -> ParseResult<Stmt> {
+    fn block(&mut self, block_terminators: &[TokenKind], block_decl: Token) -> ParseResult<Stmt> {
         let mut stmts = Vec::new();
-        while !self.match_tokens(block_terminators) {
-            stmts.push(self.stmt()?);
+        let mut block_terminated = false;
+        loop {
+            if self.match_tokens(block_terminators) {
+                block_terminated = true;
+                break;
+            } else if self.tokens.peek().is_none() {
+                break;
+            }
+            let stmt = match self.stmt() {
+                Ok(stmt) => stmt,
+                Err(err) => {
+                    self.had_error = true;
+                    self.errors.push(err);
+                    self.synchronize_stmt();
+                    continue;
+                }
+            };
+            stmts.push(stmt);
         }
-        Ok(Stmt::Block(stmts))
+        match block_terminated {
+            true => Ok(Stmt::Block(stmts)),
+            false => self.error(String::from("Block unterminated"), Some(block_decl))?,
+        }
     }
-
 
     fn stmt(&mut self) -> ParseResult<Stmt> {
         match self.tokens.peek() {
@@ -62,14 +73,11 @@ impl<I> Parser<I>
                     KeywordKind::Declare => self.var_decl(),
                     KeywordKind::Call => self.call(),
                     KeywordKind::Return => self.return_stmt(),
-                    _ => self.expr_stmt()
+                    _ => self.expr_stmt(),
                 },
-                _ => self.expr_stmt()
-            }
-            None => return self.error(
-                String::from("expected statement"),
-                None,
-            )
+                _ => self.expr_stmt(),
+            },
+            None => return self.error(String::from("expected statement"), None),
         }
     }
 
@@ -86,7 +94,7 @@ impl<I> Parser<I>
                         Some(PassingMode::ByVal)
                     }
                     _ => None,
-                }
+                },
                 _ => None,
             },
             None => None,
@@ -95,15 +103,19 @@ impl<I> Parser<I>
         let name = match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::Identifier(name) => name,
-                _ => return self.error(
+                _ => {
+                    return self.error(
+                        String::from("expected identifier for parameter name."),
+                        Some(token),
+                    )
+                }
+            },
+            None => {
+                return self.error(
                     String::from("expected identifier for parameter name."),
-                    Some(token),
+                    None,
                 )
             }
-            None => return self.error(
-                String::from("expected identifier for parameter name."),
-                None,
-            )
         };
 
         self.consume(
@@ -136,25 +148,29 @@ impl<I> Parser<I>
 
             self.consume(
                 TokenKind::CloseParen,
-                String::from("expected `)` after parameters.")
+                String::from("expected `)` after parameters."),
             )?;
         }
         Ok(params)
     }
 
-    fn procedure(&mut self) -> ParseResult<Decl> {
+    fn procedure(&mut self, procedure_keyword: Token) -> ParseResult<Decl> {
         let name = match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::Identifier(name) => name,
-                _ => return self.error(
+                _ => {
+                    return self.error(
+                        String::from("expected identifier for PROCEDURE name."),
+                        Some(token),
+                    )
+                }
+            },
+            None => {
+                return self.error(
                     String::from("expected identifier for PROCEDURE name."),
-                    Some(token),
+                    None,
                 )
             }
-            None => return self.error(
-                String::from("expected identifier for PROCEDURE name."),
-                None,
-            )
         };
 
         let params = self.params()?;
@@ -164,55 +180,46 @@ impl<I> Parser<I>
             String::from("expected new line after PROCEDURE header."),
         )?;
 
-        let body = self.block(&[
-            TokenKind::Keyword(KeywordKind::EndProcedure),
-        ])?;
+        let body = self.block(&[TokenKind::Keyword(KeywordKind::EndProcedure)], procedure_keyword)?;
 
         self.tokens.next();
 
-        Ok(Decl::Procedure {
-            name,
-            params,
-            body,
-        })
+        Ok(Decl::Procedure { name, params, body })
     }
 
-    fn function(&mut self) -> ParseResult<Decl> {
+    fn function(&mut self, function_keyword: Token) -> ParseResult<Decl> {
         let name = match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::Identifier(name) => name,
-                _ => return self.error(
-                    String::from("expected identifier for FUNCTION name."),
-                    Some(token),
-                )
+                _ => {
+                    return self.error(
+                        String::from("expected identifier for FUNCTION name."),
+                        Some(token),
+                    )
+                }
+            },
+            None => {
+                return self.error(String::from("expected identifier for FUNCTION name."), None)
             }
-            None => return self.error(
-                String::from("expected identifier for FUNCTION name."),
-                None,
-            )
         };
 
         let params = self.params()?;
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Returns),
-            String::from("expected keyword `RETURNS` after FUNCTION declaration")
+            String::from("expected keyword `RETURNS` after FUNCTION declaration"),
         )?;
 
         let return_type_name = self.type_name()?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after FUNCTION return type.")
+            String::from("expected new line after FUNCTION return type."),
         )?;
 
-        let body = self.block(&[
-            TokenKind::Keyword(KeywordKind::EndFunction),
-        ])?;
+        let body = self.block(&[TokenKind::Keyword(KeywordKind::EndFunction)], function_keyword)?;
 
         self.tokens.next();
-
-
 
         Ok(Decl::Function {
             name,
@@ -220,7 +227,6 @@ impl<I> Parser<I>
             body,
             return_type_name,
         })
-
     }
 
     fn call(&mut self) -> ParseResult<Stmt> {
@@ -229,15 +235,21 @@ impl<I> Parser<I>
         let name = match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::Identifier(name) => name,
-                _ => return self.error(
+                _ => {
+                    return self.error(
+                        String::from(
+                            "expected identifier for PROCEDURE name after keyword, `CALL`.",
+                        ),
+                        Some(token),
+                    )
+                }
+            },
+            None => {
+                return self.error(
                     String::from("expected identifier for PROCEDURE name after keyword, `CALL`."),
-                    Some(token),
+                    None,
                 )
             }
-            None => return self.error(
-                String::from("expected identifier for PROCEDURE name after keyword, `CALL`."),
-                None,
-            )
         };
 
         let mut args = Vec::new();
@@ -264,10 +276,7 @@ impl<I> Parser<I>
             String::from("expected new line after procedure call."),
         )?;
 
-        Ok(Stmt::Call {
-            name,
-            args
-        })
+        Ok(Stmt::Call { name, args })
     }
 
     fn return_stmt(&mut self) -> ParseResult<Stmt> {
@@ -286,15 +295,16 @@ impl<I> Parser<I>
         let name = match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::Identifier(name) => name,
-                _ => return self.error(
-                    String::from("expected identifier for variable name."),
-                    Some(token),
-                )
+                _ => {
+                    return self.error(
+                        String::from("expected identifier for variable name."),
+                        Some(token),
+                    )
+                }
+            },
+            None => {
+                return self.error(String::from("expected identifier for variable name."), None)
             }
-            None => return self.error(
-                String::from("expected identifier for variable name."),
-                None,
-            )
         };
 
         self.consume(
@@ -309,10 +319,7 @@ impl<I> Parser<I>
             String::from("expected new line after variable declaration."),
         )?;
 
-        Ok(Stmt::VarDecl {
-            name,
-            type_name,
-        })
+        Ok(Stmt::VarDecl { name, type_name })
     }
 
     fn expr_stmt(&mut self) -> ParseResult<Stmt> {
@@ -358,7 +365,7 @@ impl<I> Parser<I>
     }
 
     fn if_stmt(&mut self) -> ParseResult<Stmt> {
-        self.tokens.next();
+        let if_keyword = self.tokens.next().unwrap();
         let condition = self.expr()?;
 
         /*
@@ -381,7 +388,7 @@ impl<I> Parser<I>
         let then_branch = Box::new(self.block(&[
             TokenKind::Keyword(KeywordKind::EndIf),
             TokenKind::Keyword(KeywordKind::Else),
-        ])?);
+        ], if_keyword.clone())?);
 
         let mut else_branch = None;
 
@@ -391,9 +398,9 @@ impl<I> Parser<I>
                 TokenKind::NewLine,
                 String::from("expected new line after keyword, `ELSE`."),
             )?;
-            else_branch = Some(Box::new(self.block(&[
-                TokenKind::Keyword(KeywordKind::EndIf),
-            ])?));
+            else_branch = Some(Box::new(
+                self.block(&[TokenKind::Keyword(KeywordKind::EndIf)], if_keyword)?,
+            ));
         }
 
         self.consume(
@@ -414,16 +421,14 @@ impl<I> Parser<I>
     }
 
     fn repeat(&mut self) -> ParseResult<Stmt> {
-        self.tokens.next();
+        let repeat_keyword = self.tokens.next().unwrap();
 
         self.consume(
             TokenKind::NewLine,
             String::from("expected new line after keyword, `REPEAT`."),
         )?;
 
-        let body = Box::new(self.block(&[
-            TokenKind::Keyword(KeywordKind::Until)
-        ])?);
+        let body = Box::new(self.block(&[TokenKind::Keyword(KeywordKind::Until)], repeat_keyword)?);
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Until),
@@ -437,11 +442,14 @@ impl<I> Parser<I>
             String::from("expected new line after REPEAT loop condition."),
         )?;
 
-        Ok(Stmt::Repeat { body, until: condition })
+        Ok(Stmt::Repeat {
+            body,
+            until: condition,
+        })
     }
 
     fn while_stmt(&mut self) -> ParseResult<Stmt> {
-        self.tokens.next();
+        let while_keyword = self.tokens.next().unwrap();
         let condition = self.expr()?;
 
         self.consume(
@@ -449,9 +457,7 @@ impl<I> Parser<I>
             String::from("expected new line after WHILE loop condition."),
         )?;
 
-        let body = Box::new(self.block(&[
-            TokenKind::Keyword(KeywordKind::EndWhile)
-        ])?);
+        let body = Box::new(self.block(&[TokenKind::Keyword(KeywordKind::EndWhile)], while_keyword)?);
 
         self.consume(
             TokenKind::Keyword(KeywordKind::EndWhile),
@@ -467,7 +473,7 @@ impl<I> Parser<I>
     }
 
     fn for_stmt(&mut self) -> ParseResult<Stmt> {
-        self.tokens.next();
+        let for_keyword = self.tokens.next().unwrap();
         let initializer = self.expr()?;
 
         self.consume(
@@ -483,7 +489,7 @@ impl<I> Parser<I>
                 self.tokens.next();
                 Some(self.expr()?)
             }
-            false => None
+            false => None,
         };
 
         self.consume(
@@ -491,9 +497,7 @@ impl<I> Parser<I>
             String::from("expected new line after `FOR` loop header."),
         )?;
 
-        let body = self.block(&[
-            TokenKind::Keyword(KeywordKind::Next)
-        ])?;
+        let body = self.block(&[TokenKind::Keyword(KeywordKind::Next)], for_keyword)?;
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Next),
@@ -527,21 +531,24 @@ impl<I> Parser<I>
                     Stmt::Expr(ExprKind::Assignment {
                         target: match counter.clone() {
                             ExprKind::Variable(name) => name,
-                            _ => self.error(String::from("invalid FOR loop increment variable."), None)?,
+                            _ => self.error(
+                                String::from("invalid FOR loop increment variable."),
+                                None,
+                            )?,
                         },
                         value: Box::new(ExprKind::Binary {
                             lhs: Box::new(counter.clone()),
-                            op: Token::new(TokenKind::Plus),
+                            op: Token::from(TokenKind::Plus),
                             rhs: Box::new(match step {
                                 Some(s) => s,
-                                None => ExprKind::Literal(LiteralKind::Integer(1))
+                                None => ExprKind::Literal(LiteralKind::Integer(1)),
                             }),
                         }),
                     }),
                 ])),
                 condition: ExprKind::Binary {
                     lhs: Box::new(counter),
-                    op: Token::new(TokenKind::NotEqual),
+                    op: Token::from(TokenKind::NotEqual),
                     rhs: Box::new(to),
                 },
             },

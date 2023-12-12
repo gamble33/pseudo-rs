@@ -1,18 +1,7 @@
 PROCEDURE Main
-    DECLARE LivesLeft : INTEGER
-    DECLARE XPos : REAL
-    DECLARE YPos : REAL
-    DECLARE Name : STRING
-    DECLARE Based : BOOLEAN
-
-    OUTPUT "Input Name"
-    INPUT Name
-
-    LivesLeft <- 3
-    XPos <- 34.45
-    YPos <- 64.0
-    Based <- TRUE
-
-    OUTPUT Name, "is based:", Based
-    OUTPUT "Lives:", LivesLeft, "Pos =", XPos, ",", YPos
+    OUTPUT Add(3.0, 3.0)
 ENDPROCEDURE
+
+FUNCTION Add(A : REAL, B : REAL) RETURNS REAL $
+    RETURN A + B
+ENDFUNCTION 

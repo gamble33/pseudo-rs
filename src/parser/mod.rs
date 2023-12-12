@@ -1,56 +1,74 @@
-mod error;
+pub mod error;
 pub mod expr;
 pub mod stmt;
 #[allow(dead_code)]
 pub mod type_name;
 
-use std::iter::Peekable;
+use crate::ir::ast::Decl;
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
 use crate::parser::error::{ParseError, ParseResult};
-use crate::ir::ast::Decl;
+use std::iter::Peekable;
 
 pub struct Parser<I>
-    where I: Iterator<Item=Token>
+where
+    I: Iterator<Item = Token>,
 {
     tokens: Peekable<I>,
+    had_error: bool,
+    errors: Vec<ParseError>,
+}
+
+pub fn program<I>(tokens: Peekable<I>) -> Result<Vec<Decl>, Vec<ParseError>>
+where
+    I: Iterator<Item = Token>,
+{
+    let mut parser = Parser::new(tokens);
+    let mut declarations = Vec::new();
+
+    while parser.tokens.peek().is_some() {
+        match parser.decl() {
+            Ok(decl) => declarations.push(decl),
+            Err(error) => {
+                parser.had_error = true;
+                parser.errors.push(error);
+                parser.synchronize_decl();
+            }
+        }
+    }
+
+    match parser.had_error {
+        true => Err(parser.errors),
+        false => Ok(declarations),
+    }
 }
 
 impl<I> Parser<I>
-    where I: Iterator<Item=Token>
+where
+    I: Iterator<Item = Token>,
 {
-    pub fn new(tokens: Peekable<I>) -> Self {
-        Self { tokens }
-    }
-
-    pub fn program(&mut self) -> Result<Vec<Decl>, Vec<ParseError>> {
-        let mut declarations = Vec::new();
-        let mut errors = Vec::new();
-        let mut had_error = false;
-
-        while self.tokens.peek().is_some() {
-            match self.decl() {
-                Ok(decl) => declarations.push(decl),
-                Err(error) => {
-                    had_error = true;
-                    errors.push(error);
-                    self.synchronize();
-                }
-            }
-        }
-
-        match had_error {
-            true => Err(errors),
-            false => Ok(declarations)
+    fn new(tokens: Peekable<I>) -> Self {
+        Self {
+            tokens,
+            had_error: false,
+            errors: Vec::new(),
         }
     }
 
-    fn synchronize(&mut self) {
+    fn synchronize_decl(&mut self) {
         while !self.match_tokens(&[
-            TokenKind::Keyword(KeywordKind::Procedure),
             TokenKind::Keyword(KeywordKind::Function),
-        ]) && self.tokens.peek().is_some() {
+            TokenKind::Keyword(KeywordKind::Procedure),
+        ]) && self.tokens.peek().is_some()
+        {
             self.tokens.next();
         }
+    }
+
+    fn synchronize_stmt(&mut self) {
+        while !self.match_tokens(&[TokenKind::NewLine]) && self.tokens.peek().is_some() {
+            self.tokens.next();
+        }
+        self.tokens.next();
     }
 
     fn consume(&mut self, kind: TokenKind, msg: String) -> ParseResult<Token> {
@@ -61,7 +79,7 @@ impl<I> Parser<I>
                 }
                 return Ok(token);
             }
-            None => self.error(msg, None)
+            None => self.error(msg, None),
         }
     }
 
@@ -77,18 +95,7 @@ impl<I> Parser<I>
                 }
                 matched
             }
-            None => false
+            None => false,
         }
     }
-
-}
-
-pub fn print_parse_errors(errors: Vec<ParseError>) {
-    errors.iter().for_each(|error| {
-        println!("error: {}", error.msg);
-        match &error.token {
-            Some(token) => println!("got `{:?}`", token),
-            None => (),
-        }
-    });
 }

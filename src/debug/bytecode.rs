@@ -1,11 +1,17 @@
-use pseudo_rs::{codegen_bytecode::emit, lexer::Lexer, naive_tc, parser, parser::Parser, vm::Vm};
+use pseudo_rs::{
+    codegen_bytecode::emit,
+    lexer::Lexer,
+    naive_tc,
+    parser::{self, program},
+    vm::Vm,
+};
 
 pub fn print_bytecode(src: &str) {
     emit(
-        naive_tc::typecheck(match Parser::new(Lexer::new(src).peekable()).program() {
+        naive_tc::typecheck(match program(Lexer::new(src).peekable()) {
             Ok(decls) => decls,
             Err(errors) => {
-                parser::print_parse_errors(errors);
+                parser::error::print_parse_errors(src, errors);
                 std::process::exit(0);
             }
         }),

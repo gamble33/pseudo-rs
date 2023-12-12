@@ -1,18 +1,35 @@
 #[derive(Debug, Clone)]
 pub struct Token {
     pub kind: TokenKind,
+    pub line: usize,
+    pub col: usize,
+    pub len: usize,
 }
 
 impl Token {
-    pub fn new(kind: TokenKind) -> Self {
+    pub fn new(kind: TokenKind, line: usize, col: usize, len: usize) -> Self {
         Self {
             kind,
+            line,
+            col,
+            len,
+        }
+    }
+
+    pub fn from(kind: TokenKind) -> Self {
+        Self {
+            kind,
+            line: 0,
+            col: 0,
+            len: 0,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenKind {
+    Error(&'static str),
+
     Identifier(String),
     Literal(TokenLiteralKind),
     Keyword(KeywordKind),
