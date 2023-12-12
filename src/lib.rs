@@ -1,4 +1,5 @@
 pub mod codegen_bytecode;
+pub mod error;
 mod codegen_c;
 pub mod ir;
 #[allow(unreachable_code)] pub mod lexer;
@@ -16,7 +17,7 @@ pub fn interpret(src: &str) {
     let program = match program(tokens.peekable()) {
         Ok(decls) => decls,
         Err(errors) => {
-            parser::error::print_parse_errors(src, errors);
+            error::print_parse_errors(src, errors);
             std::process::exit(0);
         }
     };
@@ -33,7 +34,7 @@ pub fn compile_to_c(src: &str) {
     let program = match program(tokens.peekable()) {
         Ok(decls) => decls,
         Err(errors) => {
-            parser::error::print_parse_errors(src, errors);
+            error::print_parse_errors(src, errors);
             std::process::exit(0);
         }
     };

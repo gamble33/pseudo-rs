@@ -1,6 +1,6 @@
 use crate::ir::ast::{Decl, ExprKind, LiteralKind, Param, PassingMode, Stmt};
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
-use crate::parser::error::ParseResult;
+use crate::error::ParseResult;
 use crate::parser::Parser;
 
 impl<I> Parser<I>
@@ -14,18 +14,18 @@ where
                 TokenKind::Keyword(ref keyword) => match keyword {
                     KeywordKind::Procedure => self.procedure(tok),
                     KeywordKind::Function => self.function(tok),
-                    _ => self.error(String::from("expected declaration."), Some(tok)),
+                    _ => self.error("expected declaration.", Some(tok)),
                 },
-                _ => self.error(String::from("expected declaration."), Some(tok)),
+                _ => self.error("expected declaration.", Some(tok)),
             },
-            None => self.error(String::from("expected declaration."), None),
+            None => self.error("expected declaration.", None),
         }?;
 
         match self.tokens.next() {
             Some(token) => match token.kind {
                 TokenKind::NewLine => Ok(decl),
                 _ => self.error(
-                    String::from("expected new line after declaration."),
+                    "expected new line after declaration.",
                     Some(token),
                 ),
             },
@@ -56,7 +56,7 @@ where
         }
         match block_terminated {
             true => Ok(Stmt::Block(stmts)),
-            false => self.error(String::from("Block unterminated"), Some(block_decl))?,
+            false => self.error("Block unterminated", Some(block_decl))?,
         }
     }
 
@@ -77,7 +77,7 @@ where
                 },
                 _ => self.expr_stmt(),
             },
-            None => return self.error(String::from("expected statement"), None),
+            None => return self.error("expected statement", None),
         }
     }
 
@@ -105,14 +105,14 @@ where
                 TokenKind::Identifier(name) => name,
                 _ => {
                     return self.error(
-                        String::from("expected identifier for parameter name."),
+                        "expected identifier for parameter name.",
                         Some(token),
                     )
                 }
             },
             None => {
                 return self.error(
-                    String::from("expected identifier for parameter name."),
+                    "expected identifier for parameter name.",
                     None,
                 )
             }
@@ -120,7 +120,7 @@ where
 
         self.consume(
             TokenKind::Colon,
-            String::from("expected `:` after parameter name."),
+            "expected `:` after parameter name.",
         )?;
 
         let type_name = self.type_name()?;
@@ -148,7 +148,7 @@ where
 
             self.consume(
                 TokenKind::CloseParen,
-                String::from("expected `)` after parameters."),
+                "expected `)` after parameters.",
             )?;
         }
         Ok(params)
@@ -160,14 +160,14 @@ where
                 TokenKind::Identifier(name) => name,
                 _ => {
                     return self.error(
-                        String::from("expected identifier for PROCEDURE name."),
+                        "expected identifier for PROCEDURE name.",
                         Some(token),
                     )
                 }
             },
             None => {
                 return self.error(
-                    String::from("expected identifier for PROCEDURE name."),
+                    "expected identifier for PROCEDURE name.",
                     None,
                 )
             }
@@ -177,7 +177,7 @@ where
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after PROCEDURE header."),
+            "expected new line after PROCEDURE header.",
         )?;
 
         let body = self.block(&[TokenKind::Keyword(KeywordKind::EndProcedure)], procedure_keyword)?;
@@ -193,13 +193,13 @@ where
                 TokenKind::Identifier(name) => name,
                 _ => {
                     return self.error(
-                        String::from("expected identifier for FUNCTION name."),
+                        "expected identifier for FUNCTION name.",
                         Some(token),
                     )
                 }
             },
             None => {
-                return self.error(String::from("expected identifier for FUNCTION name."), None)
+                return self.error("expected identifier for FUNCTION name.", None)
             }
         };
 
@@ -207,14 +207,14 @@ where
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Returns),
-            String::from("expected keyword `RETURNS` after FUNCTION declaration"),
+            "expected keyword `RETURNS` after FUNCTION declaration",
         )?;
 
         let return_type_name = self.type_name()?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after FUNCTION return type."),
+            "expected new line after FUNCTION return type.",
         )?;
 
         let body = self.block(&[TokenKind::Keyword(KeywordKind::EndFunction)], function_keyword)?;
@@ -237,16 +237,14 @@ where
                 TokenKind::Identifier(name) => name,
                 _ => {
                     return self.error(
-                        String::from(
                             "expected identifier for PROCEDURE name after keyword, `CALL`.",
-                        ),
                         Some(token),
                     )
                 }
             },
             None => {
                 return self.error(
-                    String::from("expected identifier for PROCEDURE name after keyword, `CALL`."),
+                    "expected identifier for PROCEDURE name after keyword, `CALL`.",
                     None,
                 )
             }
@@ -267,13 +265,13 @@ where
 
             self.consume(
                 TokenKind::CloseParen,
-                String::from("expected `)` after arguments."),
+                "expected `)` after arguments.",
             )?;
         }
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after procedure call."),
+            "expected new line after procedure call.",
         )?;
 
         Ok(Stmt::Call { name, args })
@@ -284,7 +282,7 @@ where
         let expr = self.expr()?;
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after expression."),
+            "expected new line after expression.",
         )?;
         Ok(Stmt::Return(expr))
     }
@@ -297,26 +295,26 @@ where
                 TokenKind::Identifier(name) => name,
                 _ => {
                     return self.error(
-                        String::from("expected identifier for variable name."),
+                        "expected identifier for variable name.",
                         Some(token),
                     )
                 }
             },
             None => {
-                return self.error(String::from("expected identifier for variable name."), None)
+                return self.error("expected identifier for variable name.", None)
             }
         };
 
         self.consume(
             TokenKind::Colon,
-            String::from("expected `:` after variable name."),
+            "expected `:` after variable name.",
         )?;
 
         let type_name = self.type_name()?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after variable declaration."),
+            "expected new line after variable declaration.",
         )?;
 
         Ok(Stmt::VarDecl { name, type_name })
@@ -326,7 +324,7 @@ where
         let expr_stmt = Stmt::Expr(self.expr()?);
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after expression."),
+            "expected new line after expression.",
         )?;
         Ok(expr_stmt)
     }
@@ -344,7 +342,7 @@ where
         }
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after expression."),
+            "expected new line after expression.",
         )?;
         Ok(Stmt::Output(exprs))
     }
@@ -355,11 +353,11 @@ where
             ExprKind::Variable(name) => name,
 
             // todo: Add token previous
-            _ => self.error(String::from("Cannot store input in that"), None)?,
+            _ => self.error("Cannot store input in that", None)?,
         };
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after expression."),
+            "expected new line after expression.",
         )?;
         Ok(Stmt::Input(holder))
     }
@@ -378,11 +376,11 @@ where
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Then),
-            String::from("expected keyword `THEN` after condition."),
+            "expected keyword `THEN` after condition.",
         )?;
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after keyword, `THEN`."),
+            "expected new line after keyword, `THEN`.",
         )?;
 
         let then_branch = Box::new(self.block(&[
@@ -396,7 +394,7 @@ where
             self.tokens.next();
             self.consume(
                 TokenKind::NewLine,
-                String::from("expected new line after keyword, `ELSE`."),
+                "expected new line after keyword, `ELSE`.",
             )?;
             else_branch = Some(Box::new(
                 self.block(&[TokenKind::Keyword(KeywordKind::EndIf)], if_keyword)?,
@@ -405,12 +403,12 @@ where
 
         self.consume(
             TokenKind::Keyword(KeywordKind::EndIf),
-            String::from("expected `ENDIF` after `IF` statement."),
+            "expected `ENDIF` after `IF` statement.",
         )?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after keyword, `ENDIF`."),
+            "expected new line after keyword, `ENDIF`.",
         )?;
 
         Ok(Stmt::If {
@@ -425,21 +423,21 @@ where
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after keyword, `REPEAT`."),
+            "expected new line after keyword, `REPEAT`.",
         )?;
 
         let body = Box::new(self.block(&[TokenKind::Keyword(KeywordKind::Until)], repeat_keyword)?);
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Until),
-            String::from("expected keyword, `UNTIL`, after post-condition loop body."),
+            "expected keyword, `UNTIL`, after post-condition loop body.",
         )?;
 
         let condition = self.expr()?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after REPEAT loop condition."),
+            "expected new line after REPEAT loop condition.",
         )?;
 
         Ok(Stmt::Repeat {
@@ -454,19 +452,19 @@ where
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after WHILE loop condition."),
+            "expected new line after WHILE loop condition.",
         )?;
 
         let body = Box::new(self.block(&[TokenKind::Keyword(KeywordKind::EndWhile)], while_keyword)?);
 
         self.consume(
             TokenKind::Keyword(KeywordKind::EndWhile),
-            String::from("expected keyword, `ENDWHILE`, after pre-condition loop body."),
+            "expected keyword, `ENDWHILE`, after pre-condition loop body.",
         )?;
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after keyword, `ENDWHILE`."),
+            "expected new line after keyword, `ENDWHILE`.",
         )?;
 
         Ok(Stmt::While { body, condition })
@@ -478,7 +476,7 @@ where
 
         self.consume(
             TokenKind::Keyword(KeywordKind::To),
-            String::from("expected keyword, `TO`, after initializer expression."),
+            "expected keyword, `TO`, after initializer expression.",
         )?;
 
         // todo: ensure to expr is an assignment
@@ -494,14 +492,14 @@ where
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after `FOR` loop header."),
+            "expected new line after `FOR` loop header.",
         )?;
 
         let body = self.block(&[TokenKind::Keyword(KeywordKind::Next)], for_keyword)?;
 
         self.consume(
             TokenKind::Keyword(KeywordKind::Next),
-            String::from("expected keyword, `NEXT`, after count-controlled loop body."),
+            "expected keyword, `NEXT`, after count-controlled loop body.",
         )?;
 
         let counter = self.expr()?;
@@ -509,14 +507,14 @@ where
         match counter {
             ExprKind::Variable(_) => (),
             _ => self.error(
-                String::from("FOR loop must specify variable to increment."),
+                "FOR loop must specify variable to increment.",
                 None, // todo: figure out how to insert token here.
             )?,
         }
 
         self.consume(
             TokenKind::NewLine,
-            String::from("expected new line after identifier."),
+            "expected new line after identifier.",
         )?;
 
         // todo: account for imperfect steps
@@ -532,7 +530,7 @@ where
                         target: match counter.clone() {
                             ExprKind::Variable(name) => name,
                             _ => self.error(
-                                String::from("invalid FOR loop increment variable."),
+                                "invalid FOR loop increment variable.",
                                 None,
                             )?,
                         },

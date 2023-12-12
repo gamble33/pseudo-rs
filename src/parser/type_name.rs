@@ -1,5 +1,5 @@
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
-use crate::parser::error::ParseResult;
+use crate::error::ParseResult;
 use crate::parser::Parser;
 use crate::ir::ast::{BaseTypeName, TypeName};
 
@@ -25,18 +25,18 @@ impl<I> Parser<I>
                     KeywordKind::Boolean => Ok(TypeName::BaseTypeName(BaseTypeName::Boolean)),
                     KeywordKind::Date => Ok(TypeName::BaseTypeName(BaseTypeName::Date)),
                     _ => self.error(
-                        String::from("expected a base type like INTEGER or something."),
+                        "expected a base type like INTEGER or something.",
                         Some(token),
                     )
                 }
                 TokenKind::Identifier(name) => Ok(TypeName::BaseTypeName(BaseTypeName::Identifier(name))),
                 _ => self.error(
-                    String::from("expected a base type like INTEGER or something."),
+                    "expected a base type like INTEGER or something.",
                     Some(token),
                 )
             }
             None => self.error(
-                String::from("expected type name."),
+                "expected type name.",
                 None,
             )
         }

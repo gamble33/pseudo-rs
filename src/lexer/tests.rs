@@ -1,4 +1,4 @@
-use crate::lexer::{KeywordKind, Lexer, TokenKind, TokenLiteralKind};
+use crate::lexer::{token::KeywordKind, Lexer, TokenKind, TokenLiteralKind};
 use TokenKind::*;
 
 fn check_lexing(src: &str, expect: Vec<TokenKind>) {

@@ -1,4 +1,3 @@
-pub mod error;
 pub mod expr;
 pub mod stmt;
 #[allow(dead_code)]
@@ -6,7 +5,7 @@ pub mod type_name;
 
 use crate::ir::ast::Decl;
 use crate::lexer::token::{KeywordKind, Token, TokenKind};
-use crate::parser::error::{ParseError, ParseResult};
+use crate::error::{ParseError, ParseResult};
 use std::iter::Peekable;
 
 pub struct Parser<I>
@@ -71,7 +70,7 @@ where
         self.tokens.next();
     }
 
-    fn consume(&mut self, kind: TokenKind, msg: String) -> ParseResult<Token> {
+    fn consume(&mut self, kind: TokenKind, msg: &'static str) -> ParseResult<Token> {
         match self.tokens.next() {
             Some(token) => {
                 if token.kind != kind {
@@ -97,5 +96,10 @@ where
             }
             None => false,
         }
+    }
+
+    #[inline]
+    pub fn error<T>(&mut self, msg: &'static str, token: Option<Token>) -> ParseResult<T> {
+        Err(ParseError::new(msg, token))
     }
 }

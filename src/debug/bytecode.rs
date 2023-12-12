@@ -2,8 +2,9 @@ use pseudo_rs::{
     codegen_bytecode::emit,
     lexer::Lexer,
     naive_tc,
-    parser::{self, program},
+    parser::program,
     vm::Vm,
+    error
 };
 
 pub fn print_bytecode(src: &str) {
@@ -11,7 +12,7 @@ pub fn print_bytecode(src: &str) {
         naive_tc::typecheck(match program(Lexer::new(src).peekable()) {
             Ok(decls) => decls,
             Err(errors) => {
-                parser::error::print_parse_errors(src, errors);
+                error::print_parse_errors(src, errors);
                 std::process::exit(0);
             }
         }),

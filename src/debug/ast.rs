@@ -1,7 +1,8 @@
 use pseudo_rs::{
     ir::ast::{BaseTypeName, ExprKind, Stmt, TypeName, Decl, LiteralKind},
     lexer::{token::Token, token::TokenKind, Lexer},
-    parser::{self, program},
+    parser::program,
+    error,
 };
 
 pub fn print_ast(src: &str) {
@@ -9,7 +10,7 @@ pub fn print_ast(src: &str) {
     match program {
         Ok(decls) => decls.iter().for_each(|decl| print_decl(decl)),
         Err(errors) => {
-            parser::error::print_parse_errors(src, errors);
+            error::print_parse_errors(src, errors);
             std::process::exit(0);
         }
     };
