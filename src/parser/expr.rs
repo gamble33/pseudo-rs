@@ -157,6 +157,9 @@ where
             self.tokens.next();
             let mut args = Vec::new();
             loop {
+                if self.match_tokens(&[CloseParen]) {
+                    break;
+                }
                 args.push(self.expr()?);
                 if !self.match_tokens(&[Comma]) {
                     break;
